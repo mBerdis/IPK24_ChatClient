@@ -1,29 +1,12 @@
-#include <iostream>
-#include <cstring>
-#include <string>
-#include <stdio.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#include <cstdio>
-typedef int ssize_t;
-#define poll WSAPoll
-#define close closesocket
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <unistd.h>
-#endif
-
-
 #include "UDPConnection.h"
+#include <iostream>
 
-UDPConnection::UDPConnection(std::string serverIP): AbstractConnection(AF_INET, SOCK_DGRAM, serverIP)
+UDPConnection::UDPConnection(ConnectionSettings& conSettings): 
+    AbstractConnection(AF_INET, SOCK_DGRAM, conSettings), 
+    udpRetry{conSettings.udpRetry},
+    udpTimeout{conSettings.udpTimeout}
 {
+    // init connetion with the server
     return;
 }
 

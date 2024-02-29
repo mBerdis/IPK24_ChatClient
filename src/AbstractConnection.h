@@ -1,12 +1,13 @@
 #pragma once
 #include <string>
+#include "ConnectionSettings.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 #include <cstdio>
-typedef int ssize_t;
+//typedef int ssize_t;
 #define poll WSAPoll
 #define close closesocket
 #else
@@ -20,13 +21,13 @@ typedef int ssize_t;
 class AbstractConnection
 {
 	public:
-		AbstractConnection(int family, int socketType, std::string serverIP);
+		AbstractConnection(int family, int socketType, ConnectionSettings& conSettings);
 		~AbstractConnection();
 		virtual void send_msg(std::string msg)	= 0;		// pure virtual
 		virtual void receive_msg()				= 0;		// pure virtual
 
 	protected:
-		const int serverPort = 12345;
+		int serverPort;
 		int clientSocket;
 		struct sockaddr_in serverAddress;
 #ifdef _WIN32

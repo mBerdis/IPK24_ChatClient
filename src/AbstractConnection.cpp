@@ -6,23 +6,7 @@
 #include <string>
 #include <stdio.h>
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#include <cstdio>
-typedef int ssize_t;
-#define poll WSAPoll
-#define close closesocket
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <unistd.h>
-#endif
-
-AbstractConnection::AbstractConnection(int family, int socketType, std::string serverIP)
+AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSettings& conSettings): serverPort{conSettings.serverPort}
 {
 #ifdef _WIN32
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -40,7 +24,7 @@ AbstractConnection::AbstractConnection(int family, int socketType, std::string s
 
 	serverAddress.sin_family = family;
 	serverAddress.sin_port   = htons(serverPort);
-	inet_pton(family, serverIP.c_str(), &serverAddress.sin_addr);
+	inet_pton(family, conSettings.serverAdress.c_str(), &serverAddress.sin_addr);
 }
 
 AbstractConnection::~AbstractConnection()
