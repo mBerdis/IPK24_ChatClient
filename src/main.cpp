@@ -1,12 +1,18 @@
 #include <string>
 #include <unistd.h>
 #include <cstring>
+#include <poll.h>
 #include <iostream>
+#include <memory> // For std::unique_ptr
+#include <csignal>  // For signal handling
 
 #include "ConnectionSettings.h"
 #include "AbstractConnection.h"
 #include "UDPConnection.h"
 #include "TCPConnection.h"
+
+// Global flag to indicate if interrupt signal was received
+volatile sig_atomic_t signal_received = 0;
 
 static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettings& settings)
 {
@@ -58,20 +64,64 @@ static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettin
     return 0;
 }
 
+// Function to handle interrupt signal
+void signalHandler(int signum) 
+{
+    signal_received = 1;
+}
+
 int main(int argc, char* argv[]) 
 {
+    // Register signal handler for interrupt signal (Ctrl+C)
+    signal(SIGINT, signalHandler);
+
     ConnectionSettings settings;
     if (parse_args_to_setting(argc, argv, settings) != 0)
-        return 0;   // add option detected, exit
+        return 0;   // help option detected, exit
 
-    std::cout << settings.serverAdress << ":" << settings.serverPort << "\n";
-    std::cout << (int) settings.udpRetry << " " << settings.udpTimeout << "\n";
-
+    // Create connection
+    std::unique_ptr<AbstractConnection> conPtr;
     if (settings.protType == ProtocolType::TCP)
+        conPtr = std::make_unique<TCPConnection>(settings); // Create TCP connection
+    else
+        conPtr = std::make_unique<UDPConnection>(settings); // Create UDP connection
+
+    // Set up pollfd array
+    const int nfds = 2; // Keyboard input + socket
+    struct pollfd fds[nfds];
+
+    // Add keyboard input (stdin)
+    fds[0].fd = fileno(stdin); // Standard input
+    fds[0].events = POLLIN;   // Data other than high-priority data may be read
+
+    // Add socket
+    fds[1].fd = conPtr->getSocket(); // Assuming getSocket returns the file descriptor of the connection
+    fds[1].events = POLLIN;          // There is data to read
+
+    // Main loop
+    while (!signal_received) 
     {
-        TCPConnection con(settings);
-        con.send_msg("Hello World!");
+        int ret = poll(fds, nfds, -1); // wait indefinitely until an event occurs
+
+        if (ret <= 0)  // poll was interrupted
+            break;
+
+        // Check if there's input from the keyboard
+        if (fds[0].revents & POLLIN) 
+        {
+            std::string line;
+            std::getline(std::cin, line);
+            std::cout << line << "\n";
+            conPtr->send_msg(line);
+        }
+
+        // Check if there's data to read from the socket
+        if (fds[1].revents & POLLIN) 
+        {
+            conPtr->receive_msg();
+        }
     }
 
+    // connection termination is handled by destructors
     return 0;
 }

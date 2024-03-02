@@ -25,6 +25,7 @@ class AbstractConnection
 		~AbstractConnection();
 		virtual void send_msg(std::string msg)	= 0;		// pure virtual
 		virtual void receive_msg()				= 0;		// pure virtual
+		int getSocket();
 
 	protected:
 		int serverPort;

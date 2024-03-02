@@ -36,3 +36,8 @@ AbstractConnection::~AbstractConnection()
 
 	 std::cout << "Connection terminated successfully!\n";
 }
+
+int AbstractConnection::getSocket()
+{
+	return clientSocket;
+}

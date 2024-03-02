@@ -24,4 +24,4 @@ clean:
 .PHONY: all clean
 
 run: all
-	./ipk24chat-client
+	./ipk24chat-client -t udp -s 172.23.0.1
