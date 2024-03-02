@@ -10,6 +10,8 @@
 #include "AbstractConnection.h"
 #include "UDPConnection.h"
 #include "TCPConnection.h"
+#include <vector>
+#include <sstream>
 
 // Global flag to indicate if interrupt signal was received
 volatile sig_atomic_t signal_received = 0;
@@ -70,6 +72,88 @@ void signalHandler(int signum)
     signal_received = 1;
 }
 
+void process_user_input(const std::string& line, std::unique_ptr<AbstractConnection>& conPtr)
+{
+    std::istringstream iss(line);
+    std::vector<std::string> tokens;
+
+    std::string firstWord;
+    iss >> firstWord;       // will read until first whitespace
+
+    if (firstWord == "/help")
+    {
+        std::cout << "Available commands: " << "\n";
+        std::cout << "/auth {Username} {Secret} {DisplayName}" << "\n";
+        std::cout << "/join {ChannelID}" << "\n";
+        std::cout << "/rename {DisplayName}" << "\n";
+        std::cout << "/help {DisplayName}" << "\n";
+        std::cout << "else will be considered as a message you want to send." << "\n";
+    }
+    else if (firstWord == "/rename")
+    {
+        std::string displayName;
+        std::getline(iss >> std::ws, displayName); // read the rest of the line, skipping leading whitespace
+
+        if (displayName == "")
+        {
+            std::cerr << "Invalid rename command argument!" << "\n";
+            return;
+        }
+
+        conPtr->set_displayName(displayName);
+    }
+    else if (firstWord == "/join")
+    {
+        std::string channelID;
+        iss >> channelID;
+
+        if (channelID == "")
+        {
+            std::cerr << "Invalid join command argument!" << "\n";
+            return;
+        }
+
+        conPtr->join_channel(channelID);
+    }
+    else if (firstWord == "/auth")
+    {
+        std::string username, secret, displayName;
+        iss >> username;
+        iss >> secret;
+
+        std::getline(iss >> std::ws, displayName); // read the rest of the line, skipping leading whitespace
+
+        if (username == "" || secret == "" || displayName == "")
+        {
+            std::cerr << "Invalid auth command arguments!" << "\n";
+            return;
+        }
+
+        conPtr->set_displayName(displayName);
+        conPtr->auth(username, secret);
+    }
+    else 
+    {
+        if (firstWord[0] == '/')
+        {
+            std::cerr << "Invalid command detected!";
+            return;
+        }
+
+        // its not a command, send msg
+        conPtr->send_msg(line);
+    }
+
+    // Read each word separated by whitespace and store in vector
+    std::string token;
+    while (iss >> token) 
+    {
+        std::cout << token << " ";
+        tokens.push_back(token);
+    }
+    std::cout << "\n";
+}
+
 int main(int argc, char* argv[]) 
 {
     // Register signal handler for interrupt signal (Ctrl+C)
@@ -95,7 +179,7 @@ int main(int argc, char* argv[])
     fds[0].events = POLLIN;   // Data other than high-priority data may be read
 
     // Add socket
-    fds[1].fd = conPtr->getSocket(); // Assuming getSocket returns the file descriptor of the connection
+    fds[1].fd = conPtr->get_socket(); // Assuming getSocket returns the file descriptor of the connection
     fds[1].events = POLLIN;          // There is data to read
 
     // Main loop
@@ -111,8 +195,8 @@ int main(int argc, char* argv[])
         {
             std::string line;
             std::getline(std::cin, line);
-            std::cout << line << "\n";
-            conPtr->send_msg(line);
+
+            process_user_input(line, conPtr);
         }
 
         // Check if there's data to read from the socket

@@ -29,3 +29,11 @@ void UDPConnection::receive_msg()
 {
     return;
 }
+
+void UDPConnection::join_channel(std::string& channelID)
+{
+}
+
+void UDPConnection::auth(std::string& username, std::string& secret)
+{
+}

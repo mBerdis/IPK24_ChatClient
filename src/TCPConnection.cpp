@@ -40,3 +40,11 @@ void TCPConnection::receive_msg()
 {
     return;
 }
+
+void TCPConnection::join_channel(std::string& channelID)
+{
+}
+
+void TCPConnection::auth(std::string& username, std::string& secret)
+{
+}

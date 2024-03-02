@@ -23,14 +23,20 @@ class AbstractConnection
 	public:
 		AbstractConnection(int family, int socketType, ConnectionSettings& conSettings);
 		~AbstractConnection();
-		virtual void send_msg(std::string msg)	= 0;		// pure virtual
-		virtual void receive_msg()				= 0;		// pure virtual
-		int getSocket();
+
+		virtual void send_msg(std::string msg)	 = 0;		// pure virtual
+		virtual void receive_msg()				 = 0;		// pure virtual
+		virtual void join_channel(std::string& channelID) = 0;				// pure virtual
+		virtual void auth(std::string& username, std::string& secret) = 0;	// pure virtual
+
+		int get_socket();
+		void set_displayName(std::string name);
 
 	protected:
 		int serverPort;
 		int clientSocket;
 		struct sockaddr_in serverAddress;
+		std::string displayName;
 #ifdef _WIN32
 		WSADATA wsaData;
 #endif

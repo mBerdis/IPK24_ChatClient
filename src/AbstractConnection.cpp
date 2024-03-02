@@ -37,7 +37,13 @@ AbstractConnection::~AbstractConnection()
 	 std::cout << "Connection terminated successfully!\n";
 }
 
-int AbstractConnection::getSocket()
+int AbstractConnection::get_socket()
 {
 	return clientSocket;
 }
+
+void AbstractConnection::set_displayName(std::string name)
+{
+	displayName = name;
+}
+
