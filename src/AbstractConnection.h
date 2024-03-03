@@ -18,21 +18,32 @@
 #include <unistd.h>
 #endif
 
+enum ConnectionState
+{
+	OPEN,		// can send and receive
+	CLOSED,		// terminating connection
+	INIT		// not yet authorized
+};
+
 class AbstractConnection
 {
 	public:
 		AbstractConnection(int family, int socketType, ConnectionSettings& conSettings);
-		~AbstractConnection();
+		virtual ~AbstractConnection();
 
-		virtual void send_msg(std::string msg)	 = 0;		// pure virtual
+		virtual void msg(std::string msg) = 0;				// pure virtual, creates message and sends it using send_msg()
 		virtual void receive_msg()				 = 0;		// pure virtual
 		virtual void join_channel(std::string& channelID) = 0;				// pure virtual
 		virtual void auth(std::string& username, std::string& secret) = 0;	// pure virtual
 
 		int get_socket();
 		void set_displayName(std::string name);
+		void set_state(ConnectionState conState);
 
 	protected:
+		virtual void send_msg(std::string msg) = 0;			// pure virtual, internally used for sending messages to server
+
+		ConnectionState state;
 		int serverPort;
 		int clientSocket;
 		struct sockaddr_in serverAddress;

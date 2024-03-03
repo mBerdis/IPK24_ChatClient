@@ -25,6 +25,10 @@ void UDPConnection::send_msg(std::string msg)
     return;
 }
 
+void UDPConnection::msg(std::string msg)
+{
+}
+
 void UDPConnection::receive_msg()
 {
     return;

@@ -10,6 +10,8 @@
 #include "AbstractConnection.h"
 #include "UDPConnection.h"
 #include "TCPConnection.h"
+#include "Exception/ClientException.h"
+#include "Exception/ConnectionException.h"
 #include <vector>
 #include <sstream>
 
@@ -141,7 +143,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         }
 
         // its not a command, send msg
-        conPtr->send_msg(line);
+        conPtr->msg(line);
     }
 
     // Read each word separated by whitespace and store in vector
@@ -165,22 +167,31 @@ int main(int argc, char* argv[])
 
     // Create connection
     std::unique_ptr<AbstractConnection> conPtr;
-    if (settings.protType == ProtocolType::TCP)
-        conPtr = std::make_unique<TCPConnection>(settings); // Create TCP connection
-    else
-        conPtr = std::make_unique<UDPConnection>(settings); // Create UDP connection
+    try
+    {
+        if (settings.protType == ProtocolType::TCP)
+            conPtr = std::make_unique<TCPConnection>(settings); // Create TCP connection
+        else
+            conPtr = std::make_unique<UDPConnection>(settings); // Create UDP connection
+    }
+    catch (ConnectionException&)
+    {
+        return 404;
+    }
+
+
 
     // Set up pollfd array
     const int nfds = 2; // Keyboard input + socket
     struct pollfd fds[nfds];
 
     // Add keyboard input (stdin)
-    fds[0].fd = fileno(stdin); // Standard input
-    fds[0].events = POLLIN;   // Data other than high-priority data may be read
+    fds[0].fd = fileno(stdin);
+    fds[0].events = POLLIN;
 
     // Add socket
-    fds[1].fd = conPtr->get_socket(); // Assuming getSocket returns the file descriptor of the connection
-    fds[1].events = POLLIN;          // There is data to read
+    fds[1].fd = conPtr->get_socket();
+    fds[1].events = POLLIN;
 
     // Main loop
     while (!signal_received) 

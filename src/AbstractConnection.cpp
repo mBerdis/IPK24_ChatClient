@@ -6,7 +6,9 @@
 #include <string>
 #include <stdio.h>
 
-AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSettings& conSettings): serverPort{conSettings.serverPort}
+AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSettings& conSettings): 
+	serverPort{conSettings.serverPort},
+	state{INIT}
 {
 #ifdef _WIN32
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -30,11 +32,7 @@ AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSet
 AbstractConnection::~AbstractConnection()
 {
 	close(clientSocket);
-#ifdef _WIN32
-     WSACleanup();
- #endif
-
-	 std::cout << "Connection terminated successfully!\n";
+	std::cout << "Connection terminated successfully!\n" << std::flush;
 }
 
 int AbstractConnection::get_socket()
@@ -45,5 +43,10 @@ int AbstractConnection::get_socket()
 void AbstractConnection::set_displayName(std::string name)
 {
 	displayName = name;
+}
+
+void AbstractConnection::set_state(ConnectionState conState)
+{
+	state = conState;
 }
 

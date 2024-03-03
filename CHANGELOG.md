@@ -4,6 +4,12 @@ All features and notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [0.0.6] - 2023-03-03
+
+### Added
+- preparing functions for communication
+- added exceptions
+
 ## [0.0.5] - 2023-03-03
 
 ### Added
