@@ -19,7 +19,7 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 
 clean:
 	@rm -f $(EXECUTABLE)
-	@rm -rf $(OBJDIR)
+	rm -rf $(OBJDIR)
 
 .PHONY: all clean
 
@@ -28,3 +28,6 @@ runUdp: all
 
 run: all
 	./ipk24chat-client -t tcp -s 127.0.0.1
+
+valgrind:
+	@valgrind --track-fds=yes ./ipk24chat-client -t tcp -s 127.0.0.1

@@ -7,8 +7,8 @@
 #include <stdio.h>
 
 AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSettings& conSettings): 
-	serverPort{conSettings.serverPort},
-	state{INIT}
+	state{ INIT },
+	serverPort{conSettings.serverPort}
 {
 #ifdef _WIN32
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {

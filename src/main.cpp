@@ -145,15 +145,6 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         // its not a command, send msg
         conPtr->msg(line);
     }
-
-    // Read each word separated by whitespace and store in vector
-    std::string token;
-    while (iss >> token) 
-    {
-        std::cout << token << " ";
-        tokens.push_back(token);
-    }
-    std::cout << "\n";
 }
 
 int main(int argc, char* argv[]) 

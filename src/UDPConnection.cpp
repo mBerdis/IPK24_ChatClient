@@ -25,13 +25,18 @@ void UDPConnection::send_msg(std::string msg)
     return;
 }
 
+MessageType UDPConnection::process_msg(std::string& msg)
+{
+    return MSG;
+}
+
 void UDPConnection::msg(std::string msg)
 {
 }
 
-void UDPConnection::receive_msg()
+MessageType UDPConnection::receive_msg()
 {
-    return;
+    return MSG;
 }
 
 void UDPConnection::join_channel(std::string& channelID)

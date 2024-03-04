@@ -47,26 +47,110 @@ void TCPConnection::send_msg(std::string msg)
     return;
 }
 
-void TCPConnection::receive_msg() {
-    char buffer[1600];
-    std::string response;
+MessageType TCPConnection::process_msg(std::string& msg)
+{
+    std::istringstream iss(msg);
+    std::string firstWord;
+    iss >> firstWord;       // will read until first whitespace
 
+    if (firstWord == "REPLY")
+    {
+        std::string confirmation, keyword, reason;
+        iss >> confirmation;
+        iss >> keyword;
+        std::getline(iss >> std::ws, reason); // read the rest of the line, skipping leading whitespace
+
+        if (keyword != "IS")
+        {
+            // TODO: not sure if this is right
+            return INTERNAL_ERR;
+        }
+
+        if (confirmation == "OK")
+        {
+            std::cerr << "Success: " << reason << "\n";
+            return OK;
+        }
+        else if (confirmation == "NOK")
+        {
+            std::cerr << "Failure: " << reason << "\n";
+            return NOK;
+        }
+        else 
+        {
+            // TODO: not sure if this is right
+            return INTERNAL_ERR;
+        }
+    }
+    else if (firstWord == "MSG")
+    {
+        std::string keyword, sender, displayName, message;
+        iss >> keyword;
+        iss >> sender;
+        iss >> displayName;
+        std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
+
+        if (keyword != "FROM")
+        {
+            // TODO: not sure if this is right
+            return INTERNAL_ERR;
+        }
+
+        std::cout << displayName << ": " << message << "\n";
+        return MSG;
+    }
+    else if (firstWord == "ERR")
+    {
+        std::string keyword, displayName, message;
+        iss >> keyword;
+        iss >> displayName;
+        std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
+
+        if (keyword != "FROM")
+        {
+            // TODO: not sure if this is right
+            return INTERNAL_ERR;
+        }
+
+        std::cout << "ERR FROM " << displayName << ": " << message << "\n";
+        return ERR;
+    }
+    else
+    {
+        std::cerr << "Unrecognized message from server.";
+        return INTERNAL_ERR;
+    }
+}
+
+MessageType TCPConnection::receive_msg()
+{
+    char buffer[1600];
+    
     // Receive data from the server
-    int bytes_rx = recv(clientSocket, buffer, 1600, 0);
-    if (bytes_rx < 0) {
-        perror("ERROR: recv");
-        return; // Return early if an error occurred
+    int bytes_read = recv(clientSocket, buffer, 1600, 0);
+    if (bytes_read < 0) {
+        std::cout << "nothing received!\n";
+        return INTERNAL_ERR; // Return early if an error occurred
     }
 
     // Append received data to the response string
-    response.append(buffer, bytes_rx);
+    std::string response;
+    response.append(buffer, bytes_read);
 
     // Print the received message
-    std::cout << "Received message from server: " << response << std::endl;
+    std::cout << "DEBUG: Received message from server: " << response << "\n";
+
+    return process_msg(response);
 }
 
 void TCPConnection::join_channel(std::string& channelID)
 {
+    if (state != OPEN)
+    {
+        std::cout << "Auth first!";
+        return;
+    }
+
     std::stringstream tcpMsg;
     tcpMsg << "JOIN " << channelID << " AS " << displayName << "\r\n"; // JOIN {ChannelID} AS {DisplayName}\r\n
     send_msg(tcpMsg.str());
@@ -79,7 +163,21 @@ void TCPConnection::auth(std::string& username, std::string& secret)
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
     //TODO: wait for confirmation 
-
-    // if got confirmation
-    set_state(OPEN);
+    
+    //TODO: add timeout?
+    while (true)
+    {
+        switch (receive_msg())
+        {
+            case ERR:
+                return;
+            case NOK:
+                return;
+            case OK:
+                set_state(OPEN);
+                return;
+            default:
+                break;
+        }
+    }
 }

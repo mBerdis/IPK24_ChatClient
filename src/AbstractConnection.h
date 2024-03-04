@@ -18,6 +18,21 @@
 #include <unistd.h>
 #endif
 
+enum MessageType: uint16_t
+{
+	CONFIRM = 0x00,
+	REPLY	= 0x01,
+	AUTH	= 0x02,
+	JOIN	= 0x03,
+	MSG		= 0x04,
+	ERR		= 0xFE,
+	BYE		= 0xFF,
+	// flow control, not actuall message types
+	OK		= 0xFF1,
+	NOK		= 0xFF2,
+	INTERNAL_ERR = 0xFFF	// used as value for returning out of function that failed
+};
+
 enum ConnectionState
 {
 	OPEN,		// can send and receive
@@ -32,7 +47,7 @@ class AbstractConnection
 		virtual ~AbstractConnection();
 
 		virtual void msg(std::string msg) = 0;				// pure virtual, creates message and sends it using send_msg()
-		virtual void receive_msg()				 = 0;		// pure virtual
+		virtual MessageType receive_msg() = 0;			// pure virtual
 		virtual void join_channel(std::string& channelID) = 0;				// pure virtual
 		virtual void auth(std::string& username, std::string& secret) = 0;	// pure virtual
 
@@ -42,6 +57,7 @@ class AbstractConnection
 
 	protected:
 		virtual void send_msg(std::string msg) = 0;			// pure virtual, internally used for sending messages to server
+		virtual MessageType process_msg(std::string& msg) = 0;			// pure virtual, internally used for processing messages from server
 
 		ConnectionState state;
 		int serverPort;
