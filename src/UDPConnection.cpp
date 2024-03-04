@@ -46,3 +46,7 @@ void UDPConnection::join_channel(std::string& channelID)
 void UDPConnection::auth(std::string& username, std::string& secret)
 {
 }
+
+void UDPConnection::send_error(std::string msg)
+{
+}

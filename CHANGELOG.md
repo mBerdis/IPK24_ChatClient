@@ -4,6 +4,12 @@ All features and notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [0.0.9] - 2023-03-05
+
+### Added
+- (tcp) main tcp funcionality should work, tested on ref server
+- translating hostname into ip address
+
 ## [0.0.8] - 2023-03-04
 
 ### Added

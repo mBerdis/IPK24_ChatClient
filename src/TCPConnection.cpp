@@ -25,7 +25,7 @@ void TCPConnection::msg(std::string msg)
 {
     if (state != OPEN)
     {
-        std::cout << "Auth first!";
+        std::cerr << "ERR: Auth first!\n" << std::flush;
         return;
     }
 
@@ -38,7 +38,7 @@ void TCPConnection::send_msg(std::string msg)
 {
     int bytesSent = send(clientSocket, msg.c_str(), msg.length(), 0);
     if (bytesSent < 0) {
-        std::cerr << "Error sending message\n";
+        std::cerr << "ERR: Error sending message\n";
     }
     return;
 }
@@ -75,7 +75,8 @@ MessageType TCPConnection::process_msg(std::string& msg)
         else 
         {
             // TODO: not sure if this is right
-            return INTERNAL_ERR;
+            send_error("Unrecognized REPLY message from the server");
+            return ERR;
         }
     }
     else if (firstWord == "MSG")
@@ -97,12 +98,13 @@ MessageType TCPConnection::process_msg(std::string& msg)
     }
     else if (firstWord == "ERR")
     {
-        std::string keyword, displayName, message;
+        std::string keyword, displayName, keyword2, message;
         iss >> keyword;
         iss >> displayName;
+        iss >> keyword2;
         std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
 
-        if (keyword != "FROM")
+        if (keyword != "FROM" || keyword2 != "IS")
         {
             // TODO: not sure if this is right
             return INTERNAL_ERR;
@@ -118,8 +120,9 @@ MessageType TCPConnection::process_msg(std::string& msg)
     }
     else
     {
-        std::cerr << "Unrecognized message from server.";
-        return INTERNAL_ERR;
+        send_error("Unrecognized message from server.");
+        std::cerr << "ERR: Unrecognized message from server.\n";
+        return ERR;
     }
 }
 
@@ -130,16 +133,13 @@ MessageType TCPConnection::receive_msg()
     // Receive data from the server
     int bytes_read = recv(clientSocket, buffer, 1600, 0);
     if (bytes_read <= 0) {
-        std::cout << "nothing received!\n";
+        std::cout << "ERR: nothing received!\n";
         return ERR; // Return early if an error occurred
     }
 
     // Append received data to the response string
     std::string response;
     response.append(buffer, bytes_read);
-
-    // Print the received message
-    std::cout << "DEBUG: Received message from server: " << response << "\n";
 
     return process_msg(response);
 }
@@ -148,17 +148,47 @@ void TCPConnection::join_channel(std::string& channelID)
 {
     if (state != OPEN)
     {
-        std::cout << "Auth first!";
+        std::cerr << "ERR: Auth first!\n" << std::flush;
         return;
     }
 
     std::stringstream tcpMsg;
     tcpMsg << "JOIN " << channelID << " AS " << displayName << "\r\n"; // JOIN {ChannelID} AS {DisplayName}\r\n
     send_msg(tcpMsg.str());
+
+    // Set up pollfd array
+    struct pollfd fds[1];
+    fds[0].fd = get_socket();
+    fds[0].events = POLLIN;
+
+    while (!signal_received)
+    {
+        // wait REPLY_TIMEOUT ms until an event occurs
+        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
+            break;
+
+        // Check if there's data to read from the socket
+        if (fds[0].revents & POLLIN)
+        {
+            switch (receive_msg())
+            {
+            case ERR: throw ClientException();
+            case NOK: return;
+            case OK:  return;
+            default:  break;
+            }
+        }
+    }
 }
 
 void TCPConnection::auth(std::string& username, std::string& secret)
 {
+    if (state == OPEN)
+    {
+        std::cerr << "ERR: You are already authorized!\n" << std::flush;
+        return;
+    }
+
     set_state(TRY_AUTH);
     std::stringstream tcpMsg;
 
@@ -166,43 +196,40 @@ void TCPConnection::auth(std::string& username, std::string& secret)
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
 
-
     // Set up pollfd array
-    const int nfds = 2; // Keyboard input + socket
-    struct pollfd fds[nfds];
-
-    // Add keyboard input (stdin)
-    fds[0].fd = fileno(stdin);
+    struct pollfd fds[1];
+    fds[0].fd = get_socket();
     fds[0].events = POLLIN;
-
-    // Add socket
-    fds[1].fd = get_socket();
-    fds[1].events = POLLIN;
 
     while (!signal_received)
     {
-        int ret = poll(fds, nfds, REPLY_TIMEOUT); // wait REPLY_TIMEOUT ms until an event occurs
-
-        if (ret <= 0)  // poll was interrupted
+        // wait REPLY_TIMEOUT ms until an event occurs
+        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
             break;
 
-        // Check if there's input from the keyboard
-        if (fds[0].revents & POLLIN)
-        {
-            // ignore keyboard input
-            continue;
-        }
-
         // Check if there's data to read from the socket
-        if (fds[1].revents & POLLIN)
+        if (fds[0].revents & POLLIN)
         {
             switch (receive_msg())
             {
-                case ERR: return;
+                case ERR: throw ClientException();
                 case NOK: return;
                 case OK:  set_state(OPEN); return;
                 default:  break;
             }
         }
     }
+}
+
+void TCPConnection::send_error(std::string msg)
+{
+    if (state != OPEN)
+    {
+        std::cerr << "ERR: Auth first!\n" << std::flush;
+        return;
+    }
+
+    std::stringstream tcpMsg;
+    tcpMsg << "ERR FROM " << displayName << " IS " << msg << "\r\n"; // ERR FROM {DisplayName} IS {MessageContent}\r\n
+    send_msg(tcpMsg.str());
 }

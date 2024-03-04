@@ -55,14 +55,15 @@ class AbstractConnection
 		virtual MessageType receive_msg() = 0;				// pure virtual
 		virtual void join_channel(std::string& channelID) = 0;				// pure virtual
 		virtual void auth(std::string& username, std::string& secret) = 0;	// pure virtual
+		virtual void send_error(std::string msg) = 0;						// pure virtual
 
 		int get_socket();
 		void set_displayName(std::string name);
 		void set_state(ConnectionState conState);
 
 	protected:
-		virtual void send_msg(std::string msg) = 0;			// pure virtual, internally used for sending messages to server
-		virtual MessageType process_msg(std::string& msg) = 0;			// pure virtual, internally used for processing messages from server
+		virtual void send_msg(std::string msg) = 0;				// pure virtual, internally used for sending messages to server
+		virtual MessageType process_msg(std::string& msg) = 0;	// pure virtual, internally used for processing messages from server
 
 		ConnectionState state;
 		int serverPort;

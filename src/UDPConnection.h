@@ -11,6 +11,7 @@ class UDPConnection : public AbstractConnection
 		MessageType receive_msg() override;
 		void join_channel(std::string& channelID) override;
 		void auth(std::string& username, std::string& secret) override;
+		void send_error(std::string msg) override;
 
 	protected:
 		void send_msg(std::string msg) override;

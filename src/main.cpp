@@ -3,8 +3,10 @@
 #include <cstring>
 #include <poll.h>
 #include <iostream>
-#include <memory> // For std::unique_ptr
-#include <csignal>  // For signal handling
+#include <memory>
+#include <csignal>
+#include <netdb.h>
+#include <sstream>
 
 #include "ConnectionSettings.h"
 #include "AbstractConnection.h"
@@ -12,8 +14,34 @@
 #include "TCPConnection.h"
 #include "Exception/ClientException.h"
 #include "Exception/ConnectionException.h"
-#include <vector>
-#include <sstream>
+
+
+static std::string parse_ipAddress(std::string str)
+{
+    // Structure to hold the results of getaddrinfo
+    struct addrinfo hints, * res;
+
+    // Initialize hints
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family     = AF_INET;      // Using IPv4
+    hints.ai_socktype   = SOCK_STREAM;  // Use TCP
+
+    // Call getaddrinfo to get address info for the hostname
+    int result = getaddrinfo(str.c_str(), nullptr, &hints, &res);
+    if (result != 0) {
+        std::cerr << "getaddrinfo failed: " << gai_strerror(result) << std::endl;
+        return "";
+    }
+
+    char address[INET_ADDRSTRLEN];
+    struct sockaddr_in* ipv4 = reinterpret_cast<struct sockaddr_in*>(res->ai_addr);
+    inet_ntop(AF_INET, &(ipv4->sin_addr), address, INET_ADDRSTRLEN);
+
+    // Free memory allocated by getaddrinfo
+    freeaddrinfo(res);
+
+    return address;
+}
 
 static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettings& settings)
 {
@@ -30,7 +58,7 @@ static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettin
                 throw std::invalid_argument("Invalid argument for -t. Use 'tcp' or 'udp'.");
             break;
         case 's':
-            settings.serverAdress = optarg;
+            settings.serverAdress = parse_ipAddress(optarg);
             break;
 
         case 'p':
@@ -74,7 +102,6 @@ void signalHandler(int signum)
 void process_user_input(const std::string& line, std::unique_ptr<AbstractConnection>& conPtr)
 {
     std::istringstream iss(line);
-    std::vector<std::string> tokens;
 
     std::string firstWord;
     iss >> firstWord;       // will read until first whitespace
@@ -95,7 +122,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
 
         if (displayName == "")
         {
-            std::cerr << "Invalid rename command argument!" << "\n";
+            std::cerr << "ERR: Invalid rename command argument!" << "\n";
             return;
         }
 
@@ -108,7 +135,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
 
         if (channelID == "")
         {
-            std::cerr << "Invalid join command argument!" << "\n";
+            std::cerr << "ERR: Invalid join command argument!" << "\n";
             return;
         }
 
@@ -124,7 +151,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
 
         if (username == "" || secret == "" || displayName == "")
         {
-            std::cerr << "Invalid auth command arguments!" << "\n";
+            std::cerr << "ERR: Invalid auth command arguments!" << "\n";
             return;
         }
 
@@ -133,13 +160,15 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
     }
     else 
     {
+        
         if (firstWord[0] == '/')
         {
-            std::cerr << "Invalid command detected!";
+            std::cerr << "ERR: Invalid command detected!";
             return;
         }
 
         // its not a command, send msg
+        
         conPtr->msg(line);
     }
 }
@@ -164,7 +193,7 @@ int main(int argc, char* argv[])
     }
     catch (ConnectionException&)
     {
-        return 404;
+        return 404; // TODO: return code
     }
 
     // Set up pollfd array
@@ -182,9 +211,8 @@ int main(int argc, char* argv[])
     // Main loop
     while (!signal_received)
     {
-        int ret = poll(fds, nfds, -1); // wait indefinitely until an event occurs
-
-        if (ret <= 0)  // poll was interrupted
+        // wait indefinitely until an event occurs
+        if (poll(fds, nfds, -1) <= 0)  // check if poll was interrupted
             break;
 
         // Check if there's input from the keyboard
@@ -193,7 +221,14 @@ int main(int argc, char* argv[])
             std::string line;
             std::getline(std::cin, line);
 
-            process_user_input(line, conPtr);
+            try
+            {
+                process_user_input(line, conPtr);
+            }
+            catch (const ClientException&)
+            {
+                return 50;      // TODO: return code
+            }
         }
 
         // Check if there's data to read from the socket
@@ -201,12 +236,11 @@ int main(int argc, char* argv[])
         {
             switch (conPtr->receive_msg())
             {
-                case ERR: return 50;
+                case ERR: return 50;    // TODO: return code
                 case BYE: return 0;
                 default: break;
             }        
-        }
-            
+        }   
     }
 
     // connection termination is handled by destructors
