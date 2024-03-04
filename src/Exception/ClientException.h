@@ -5,7 +5,7 @@
 class ClientException : public std::exception 
 {
     public:
-        ClientException(const std::string& message = "Unknow error occured!") : m_message(message) { std::cerr << message << "\n"; }
+        ClientException(const std::string& message = "Unknow error occured!") : m_message(message) { std::cerr << "ERR: " << message << "\n"; }
 
         const char* what() const noexcept override 
         {

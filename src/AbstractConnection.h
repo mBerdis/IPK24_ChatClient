@@ -17,6 +17,10 @@
 #include <poll.h>
 #include <unistd.h>
 #endif
+#include <csignal>
+
+#define REPLY_TIMEOUT 5000	// connection will wait 5 sec for reply msg
+extern volatile sig_atomic_t signal_received;
 
 enum MessageType: uint16_t
 {
@@ -37,7 +41,8 @@ enum ConnectionState
 {
 	OPEN,		// can send and receive
 	CLOSED,		// terminating connection
-	INIT		// not yet authorized
+	INIT,		// not yet authorized
+	TRY_AUTH	// trying to auth
 };
 
 class AbstractConnection
@@ -47,7 +52,7 @@ class AbstractConnection
 		virtual ~AbstractConnection();
 
 		virtual void msg(std::string msg) = 0;				// pure virtual, creates message and sends it using send_msg()
-		virtual MessageType receive_msg() = 0;			// pure virtual
+		virtual MessageType receive_msg() = 0;				// pure virtual
 		virtual void join_channel(std::string& channelID) = 0;				// pure virtual
 		virtual void auth(std::string& username, std::string& secret) = 0;	// pure virtual
 
@@ -68,4 +73,3 @@ class AbstractConnection
 		WSADATA wsaData;
 #endif
 };
-

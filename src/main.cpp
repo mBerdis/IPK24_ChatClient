@@ -15,9 +15,6 @@
 #include <vector>
 #include <sstream>
 
-// Global flag to indicate if interrupt signal was received
-volatile sig_atomic_t signal_received = 0;
-
 static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettings& settings)
 {
     int opt;        // Parse command-line options using getopt
@@ -170,8 +167,6 @@ int main(int argc, char* argv[])
         return 404;
     }
 
-
-
     // Set up pollfd array
     const int nfds = 2; // Keyboard input + socket
     struct pollfd fds[nfds];
@@ -185,7 +180,7 @@ int main(int argc, char* argv[])
     fds[1].events = POLLIN;
 
     // Main loop
-    while (!signal_received) 
+    while (!signal_received)
     {
         int ret = poll(fds, nfds, -1); // wait indefinitely until an event occurs
 
@@ -202,10 +197,16 @@ int main(int argc, char* argv[])
         }
 
         // Check if there's data to read from the socket
-        if (fds[1].revents & POLLIN) 
+        if (fds[1].revents & POLLIN)
         {
-            conPtr->receive_msg();
+            switch (conPtr->receive_msg())
+            {
+                case ERR: return 50;
+                case BYE: return 0;
+                default: break;
+            }        
         }
+            
     }
 
     // connection termination is handled by destructors

@@ -19,7 +19,7 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 
 clean:
 	@rm -f $(EXECUTABLE)
-	rm -rf $(OBJDIR)
+	@rm -rf $(OBJDIR)
 
 .PHONY: all clean
 

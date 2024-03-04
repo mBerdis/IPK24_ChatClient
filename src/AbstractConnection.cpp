@@ -6,6 +6,9 @@
 #include <string>
 #include <stdio.h>
 
+// Global flag to indicate if interrupt signal was received
+volatile sig_atomic_t signal_received = 0;
+
 AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSettings& conSettings): 
 	state{ INIT },
 	serverPort{conSettings.serverPort}
@@ -49,4 +52,3 @@ void AbstractConnection::set_state(ConnectionState conState)
 {
 	state = conState;
 }
-

@@ -5,13 +5,15 @@
 #define DEFAULT_UDP_TIMEOUT 250
 #define DEFAULT_UDP_RETRY 3
 
-enum class ProtocolType {
+enum class ProtocolType 
+{
     UNDEFINED,
     TCP,
     UDP
 };
 
-struct ConnectionSettings {
+struct ConnectionSettings 
+{
     std::string serverAdress;
     ProtocolType protType;
     uint16_t serverPort;

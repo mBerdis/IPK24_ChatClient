@@ -18,11 +18,7 @@ TCPConnection::TCPConnection(ConnectionSettings& conSettings): AbstractConnectio
 TCPConnection::~TCPConnection()
 {
     if (state != INIT)
-    {
         send_msg("BYE\r\n");
-    }
- 
-    std::cout << "Later\n" << std::flush;
 }
 
 void TCPConnection::msg(std::string msg)
@@ -115,6 +111,11 @@ MessageType TCPConnection::process_msg(std::string& msg)
         std::cout << "ERR FROM " << displayName << ": " << message << "\n";
         return ERR;
     }
+    else if (firstWord == "BYE")
+    {
+        set_state(INIT); // changing to INIT state, because in this state destructor doesnt send BYE
+        return BYE;
+    }
     else
     {
         std::cerr << "Unrecognized message from server.";
@@ -128,9 +129,9 @@ MessageType TCPConnection::receive_msg()
     
     // Receive data from the server
     int bytes_read = recv(clientSocket, buffer, 1600, 0);
-    if (bytes_read < 0) {
+    if (bytes_read <= 0) {
         std::cout << "nothing received!\n";
-        return INTERNAL_ERR; // Return early if an error occurred
+        return ERR; // Return early if an error occurred
     }
 
     // Append received data to the response string
@@ -158,26 +159,50 @@ void TCPConnection::join_channel(std::string& channelID)
 
 void TCPConnection::auth(std::string& username, std::string& secret)
 {
+    set_state(TRY_AUTH);
     std::stringstream tcpMsg;
+
     // AUTH {Username} AS {DisplayName} USING {Secret}\r\n
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
-    //TODO: wait for confirmation 
-    
-    //TODO: add timeout?
-    while (true)
+
+
+    // Set up pollfd array
+    const int nfds = 2; // Keyboard input + socket
+    struct pollfd fds[nfds];
+
+    // Add keyboard input (stdin)
+    fds[0].fd = fileno(stdin);
+    fds[0].events = POLLIN;
+
+    // Add socket
+    fds[1].fd = get_socket();
+    fds[1].events = POLLIN;
+
+    while (!signal_received)
     {
-        switch (receive_msg())
+        int ret = poll(fds, nfds, REPLY_TIMEOUT); // wait REPLY_TIMEOUT ms until an event occurs
+
+        if (ret <= 0)  // poll was interrupted
+            break;
+
+        // Check if there's input from the keyboard
+        if (fds[0].revents & POLLIN)
         {
-            case ERR:
-                return;
-            case NOK:
-                return;
-            case OK:
-                set_state(OPEN);
-                return;
-            default:
-                break;
+            // ignore keyboard input
+            continue;
+        }
+
+        // Check if there's data to read from the socket
+        if (fds[1].revents & POLLIN)
+        {
+            switch (receive_msg())
+            {
+                case ERR: return;
+                case NOK: return;
+                case OK:  set_state(OPEN); return;
+                default:  break;
+            }
         }
     }
 }
