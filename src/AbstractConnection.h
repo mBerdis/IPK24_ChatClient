@@ -22,7 +22,7 @@
 #define REPLY_TIMEOUT 5000	// connection will wait 5 sec for reply msg
 extern volatile sig_atomic_t signal_received;
 
-enum MessageType: uint16_t
+enum MessageType: uint8_t
 {
 	CONFIRM = 0x00,
 	REPLY	= 0x01,
@@ -32,9 +32,9 @@ enum MessageType: uint16_t
 	ERR		= 0xFE,
 	BYE		= 0xFF,
 	// flow control, not actuall message types
-	OK		= 0xFF1,
-	NOK		= 0xFF2,
-	INTERNAL_ERR = 0xFFF	// used as value for returning out of function that failed
+	OK		= 0xF1,
+	NOK		= 0xF2,
+	INTERNAL_ERR = 0xF3	// used as value for returning out of function that failed
 };
 
 enum ConnectionState

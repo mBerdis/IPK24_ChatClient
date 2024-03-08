@@ -34,8 +34,9 @@ AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSet
 
 AbstractConnection::~AbstractConnection()
 {
+	shutdown(clientSocket, SHUT_RDWR);
 	close(clientSocket);
-	std::cout << "Connection terminated successfully!\n" << std::flush;
+	std::cout << "Connection terminated successfully!\n" << std::flush; // #TOOD: remove
 }
 
 int AbstractConnection::get_socket()
