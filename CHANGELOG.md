@@ -4,6 +4,18 @@ All features and notable changes to this project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [0.1.1] - 2023-03-08
+
+### Added
+- (udp) added messageID
+- (udp) laid work for sending messages
+- minor code refactor
+
+## [0.1.0] - 2023-03-08
+
+### Fixed
+- byte size of message type
+
 ## [0.0.9] - 2023-03-05
 
 ### Added

@@ -128,10 +128,10 @@ MessageType TCPConnection::process_msg(std::string& msg)
 
 MessageType TCPConnection::receive_msg()
 {
-    char buffer[1600];
+    char buffer[BUFFER_SIZE];
     
     // Receive data from the server
-    int bytes_read = recv(clientSocket, buffer, 1600, 0);
+    int bytes_read = recv(clientSocket, buffer, BUFFER_SIZE, 0);
     if (bytes_read <= 0) {
         std::cout << "ERR: nothing received!\n";
         return ERR; // Return early if an error occurred
@@ -155,11 +155,6 @@ void TCPConnection::join_channel(std::string& channelID)
     std::stringstream tcpMsg;
     tcpMsg << "JOIN " << channelID << " AS " << displayName << "\r\n"; // JOIN {ChannelID} AS {DisplayName}\r\n
     send_msg(tcpMsg.str());
-
-    // Set up pollfd array
-    struct pollfd fds[1];
-    fds[0].fd = get_socket();
-    fds[0].events = POLLIN;
 
     while (!signal_received)
     {
@@ -195,11 +190,6 @@ void TCPConnection::auth(std::string& username, std::string& secret)
     // AUTH {Username} AS {DisplayName} USING {Secret}\r\n
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
-
-    // Set up pollfd array
-    struct pollfd fds[1];
-    fds[0].fd = get_socket();
-    fds[0].events = POLLIN;
 
     while (!signal_received)
     {

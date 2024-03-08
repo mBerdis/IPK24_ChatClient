@@ -27,9 +27,14 @@ AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSet
 		exit(EXIT_FAILURE);
 	}
 
+	// setup server address
 	serverAddress.sin_family = family;
 	serverAddress.sin_port   = htons(serverPort);
 	inet_pton(family, conSettings.serverAdress.c_str(), &serverAddress.sin_addr);
+
+	// setup poll fds
+	fds[0].fd = get_socket();
+	fds[0].events = POLLIN;
 }
 
 AbstractConnection::~AbstractConnection()

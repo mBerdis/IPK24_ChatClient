@@ -6,6 +6,7 @@ class TCPConnection : public AbstractConnection
 	public:
 		TCPConnection(ConnectionSettings& conSettings);
 		~TCPConnection() override;
+
 		void msg(std::string msg) override;
 		MessageType receive_msg() override;
 		void join_channel(std::string& channelID) override;

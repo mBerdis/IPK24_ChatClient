@@ -19,6 +19,7 @@
 #endif
 #include <csignal>
 
+#define BUFFER_SIZE   1600	// buffer for reading message from socket
 #define REPLY_TIMEOUT 5000	// connection will wait 5 sec for reply msg
 extern volatile sig_atomic_t signal_received;
 
@@ -70,6 +71,7 @@ class AbstractConnection
 		int clientSocket;
 		struct sockaddr_in serverAddress;
 		std::string displayName;
+		struct pollfd fds[1];
 #ifdef _WIN32
 		WSADATA wsaData;
 #endif

@@ -1,6 +1,8 @@
 #pragma once
 #include "AbstractConnection.h"
 
+static uint16_t messageID = 0;
+
 class UDPConnection : public AbstractConnection
 {
 	public:
@@ -18,7 +20,7 @@ class UDPConnection : public AbstractConnection
 		MessageType process_msg(std::string& msg) override;
 
 	private:
-		int udpRetry;
-		int udpTimeout;
+		uint32_t udpRetry;	// 1 initial + x retries
+		uint32_t udpTimeout;
 };
 
