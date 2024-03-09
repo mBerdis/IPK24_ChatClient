@@ -152,10 +152,12 @@ void TCPConnection::join_channel(std::string& channelID)
         return;
     }
 
+    // send join message
     std::stringstream tcpMsg;
     tcpMsg << "JOIN " << channelID << " AS " << displayName << "\r\n"; // JOIN {ChannelID} AS {DisplayName}\r\n
     send_msg(tcpMsg.str());
 
+    // wait for reply
     while (!signal_received)
     {
         // wait REPLY_TIMEOUT ms until an event occurs
@@ -185,12 +187,15 @@ void TCPConnection::auth(std::string& username, std::string& secret)
     }
 
     set_state(TRY_AUTH);
+
+    // send auth message
     std::stringstream tcpMsg;
 
     // AUTH {Username} AS {DisplayName} USING {Secret}\r\n
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
 
+    // wait for reply
     while (!signal_received)
     {
         // wait REPLY_TIMEOUT ms until an event occurs

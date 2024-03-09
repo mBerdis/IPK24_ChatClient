@@ -32,5 +32,8 @@ run: all
 valgrind:
 	@valgrind --track-fds=yes ./ipk24chat-client -t tcp -s 127.0.0.1
 
-runServCon: all
+runTcpServCon: all
 	./ipk24chat-client -t tcp -s anton5.fit.vutbr.cz
+
+runUdpServCon: all
+	./ipk24chat-client -t udp -s anton5.fit.vutbr.cz

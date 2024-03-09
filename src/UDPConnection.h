@@ -1,8 +1,6 @@
 #pragma once
 #include "AbstractConnection.h"
 
-static uint16_t messageID = 0;
-
 class UDPConnection : public AbstractConnection
 {
 	public:
