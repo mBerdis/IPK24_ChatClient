@@ -15,6 +15,7 @@ class UDPConnection : public AbstractConnection
 
 	protected:
 		void send_msg(std::string msg) override;
+		void send_confirm(uint16_t receivedID);
 		MessageType process_msg(std::string& msg) override;
 
 	private:

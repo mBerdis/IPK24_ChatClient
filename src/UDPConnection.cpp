@@ -48,6 +48,9 @@ UDPConnection::~UDPConnection()
     if (state == INIT)
         return;
     
+    // SIGINT could be signalled which would stop sending bye message, unset it, we are ending anyway
+    signal_received = 0;
+
     std::stringstream udpMsg;
     udpMsg << BYE << id_to_str(messageID);
 
@@ -98,6 +101,20 @@ void UDPConnection::send_msg(std::string msg)
     throw ClientException("Error sending message! Maximum udpRetry reached.");
 }
 
+/*
+*   bypassing traditional send_msg function, because we want to send only one confirm message and also dont increment messageID
+*/
+void UDPConnection::send_confirm(uint16_t receivedID)
+{
+    std::stringstream udpMsg;
+    udpMsg << CONFIRM << id_to_str(receivedID);
+    std::string msg = udpMsg.str();
+
+    int bytesSent = sendto(clientSocket, msg.c_str(), msg.length(), 0, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+    if (bytesSent < 0)
+        throw ClientException("Error sending message!");
+}
+
 MessageType UDPConnection::process_msg(std::string& msg)
 {
     std::istringstream iss(msg);
@@ -106,12 +123,7 @@ MessageType UDPConnection::process_msg(std::string& msg)
     uint16_t    receivedID   = read_msgID(iss);
 
     if (receivedType != CONFIRM)
-    {
-        // send confirmation message
-        std::stringstream udpMsg;
-        udpMsg << CONFIRM << id_to_str(receivedID);
-        send_msg(udpMsg.str());
-    }
+        send_confirm(receivedID);
     
     switch (receivedType)
     {
@@ -123,7 +135,7 @@ MessageType UDPConnection::process_msg(std::string& msg)
 
         case REPLY:
         {
-            bool result;
+            char result;
             iss >> result;
 
             uint16_t refID = read_msgID(iss);
@@ -132,18 +144,24 @@ MessageType UDPConnection::process_msg(std::string& msg)
             std::getline(iss, content, '\0');  // read until the \0
 
             // check if receivedID is the same as ID of the last non-confirm message sent
-            if (refID != messageID - 2)
+            if (refID != messageID - 1)
                 return INTERNAL_ERR;
 
-            if (result)
+            if (result == 1)
             {
                 std::cerr << "Success: " << content << "\n";
                 return OK;
             }   
-            else 
+            else if (result == 0)
             {
                 std::cerr << "Failure: " << content << "\n";
                 return NOK;
+            }
+            else 
+            {
+                send_error("Unexpected result value.");
+                std::cerr << "ERR: Unexpected result value.\n";
+                return ERR;
             }
         }
 
@@ -182,6 +200,7 @@ void UDPConnection::msg(std::string msg)
     if (state != OPEN)
     {
         std::cerr << "ERR: Auth first!\n" << std::flush;
+        std::cerr << "Current state: " << state << "\n" << std::flush;
         return;
     }
 
