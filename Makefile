@@ -29,7 +29,7 @@ runUdp: all
 run: all
 	./ipk24chat-client -t tcp -s 127.0.0.1
 
-valgrind:
+runValgrind: all
 	@valgrind --track-fds=yes ./ipk24chat-client -t tcp -s 127.0.0.1
 
 runTcpServCon: all

@@ -1,8 +1,15 @@
 # Changelog
 
 All features and notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
+Legacy windows support code is still in the app and implementing it is possible.
+
+## [0.1.4] - 2023-03-13
+
+### Added 
+- (docs): Build & Run section
 
 ## [0.1.3] - 2023-03-10
 
