@@ -1,9 +1,10 @@
 # IPK24_ChatClient
 Author: Maroš Berdis (xberdi01) \
+Date: 13.03.2024 \
 License: GNU GENERAL PUBLIC LICENSE Version 3 \
 [Assignment specification](https://git.fit.vutbr.cz/NESFIT/IPK-Projects-2024/src/branch/master/Project%201)
 
-Chat client application written in ***C++*** that uses ***IPK24-CHAT*** protocol to communicate with the server.
+Chat client application written in ***C++***, using object oriented approach, that uses ***IPK24-CHAT*** protocol over ***IPv4*** to communicate with the server.
 
 ## Build & Run
 Project uses ***Makefile*** to handle build. Available commands:
@@ -37,7 +38,13 @@ The program reads user-typed commands from the standard input (`stdin`). Any oth
 |`/rename`  | `{displayName}` | Renames authorized user, will apply to newly sent messages |
 |`/help`  | | Prints help about these commands  |
 
-## Theory
+## Problematique
+The `IPK24-chat` is built on top of well known transport protocols TCP [RFC9293] or UDP [RFC768]. Since TCP provides reliable delivery, its variant posses little to none challenge. Thus in this section we'll focus on making UDP's connection-less approach more reliable.
+### 1. Packet loss
+After each sent UDP message (confirm message excluded) we'll await mandatory confirmation message from the server. Lack of this message, within set timespan, will signal packet loss. In that case we'll sent that message again, maximally `udpRetry` amount of times. This limitation will solve the problem when the server is no longer online or the connection is so unreliable that we cannot deliver a single message.
+
+### 2. Packet delay / duplication
+To fix this issue we'll give each message a unique identifier. While processing incoming messages we have to check whether we're expecting confirmation message with given unique identifier. If not, discard the message.
 
 ## Implementation
 ### 1. Abstraction
@@ -46,6 +53,6 @@ The program reads user-typed commands from the standard input (`stdin`). Any oth
 ## Testing
 
 ## Sources
-1. [Assignment](https://git.fit.vutbr.cz/NESFIT/IPK-Projects-2024/src/branch/master/Project%201)
+1. [Assignment specification](https://git.fit.vutbr.cz/NESFIT/IPK-Projects-2024/src/branch/master/Project%201)
 2. [BUT FIT - IKP24 presentation on network programming](https://moodle.vut.cz/pluginfile.php/823898/mod_folder/content/0/IPK2023-24L-04-PROGRAMOVANI.pdf)
 3. [Non-blocking operations using poll()](https://pubs.opengroup.org/onlinepubs/009696799/functions/poll.html)
