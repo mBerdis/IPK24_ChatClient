@@ -52,14 +52,15 @@ MessageType TCPConnection::process_msg(std::string& msg)
     if (firstWord == "REPLY")
     {
         std::string confirmation, keyword, reason;
-        iss >> confirmation;
-        iss >> keyword;
+        iss >> confirmation;    // OK or NOK
+        iss >> keyword;         // IS
         std::getline(iss >> std::ws, reason); // read the rest of the line, skipping leading whitespace
 
         if (keyword != "IS")
         {
-            // TODO: not sure if this is right
-            return INTERNAL_ERR;
+            send_error("Unrecognized message from server.");
+            std::cerr << "ERR: Unrecognized message from server.\n";
+            return ERR;
         }
 
         if (confirmation == "OK")
@@ -74,23 +75,24 @@ MessageType TCPConnection::process_msg(std::string& msg)
         }
         else 
         {
-            // TODO: not sure if this is right
-            send_error("Unrecognized REPLY message from the server");
+            send_error("Unrecognized REPLY message from the server.");
+            std::cerr << "ERR: Unrecognized REPLY message from the server.\n";
             return ERR;
         }
     }
     else if (firstWord == "MSG")
     {
-        std::string keyword, sender, displayName, message;
-        iss >> keyword;
-        iss >> sender;
-        iss >> displayName;
+        std::string keyword, displayName, keyword2, message;
+        iss >> keyword;         // FROM
+        iss >> displayName;     // name
+        iss >> keyword2;        // IS
         std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
 
-        if (keyword != "FROM")
+        if (keyword != "FROM" && keyword2 != "IS")
         {
-            // TODO: not sure if this is right
-            return INTERNAL_ERR;
+            send_error("Unrecognized message from server.");
+            std::cerr << "ERR: Unrecognized message from server.\n";
+            return ERR;
         }
 
         std::cout << displayName << ": " << message << "\n";
@@ -99,15 +101,16 @@ MessageType TCPConnection::process_msg(std::string& msg)
     else if (firstWord == "ERR")
     {
         std::string keyword, displayName, keyword2, message;
-        iss >> keyword;
-        iss >> displayName;
-        iss >> keyword2;
+        iss >> keyword;         // FROM
+        iss >> displayName;     // name
+        iss >> keyword2;        // IS
         std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
 
         if (keyword != "FROM" || keyword2 != "IS")
         {
-            // TODO: not sure if this is right
-            return INTERNAL_ERR;
+            send_error("Unrecognized message from server.");
+            std::cerr << "ERR: Unrecognized message from server.\n";
+            return ERR;
         }
 
         std::cout << "ERR FROM " << displayName << ": " << message << "\n";

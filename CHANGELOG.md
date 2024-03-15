@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
 
+## [0.1.6] - 2023-03-15
+
+### Fixed 
+- handling EOF in stdin
+- (tcp): proccessing messages with error
+- (tcp): msg processing format
+
 ## [0.1.5] - 2023-03-13
 
 ### Added 

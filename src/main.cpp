@@ -221,6 +221,10 @@ int main(int argc, char* argv[])
             std::string line;
             std::getline(std::cin, line);
 
+            // check if reached EOF and read nothing
+            if (std::cin.eof() && line.empty())
+                return 0;   // EOF reached. Exiting
+
             try
             {
                 process_user_input(line, conPtr);
@@ -229,6 +233,8 @@ int main(int argc, char* argv[])
             {
                 return 50;      // TODO: return code
             }
+
+            continue;
         }
 
         // Check if there's data to read from the socket

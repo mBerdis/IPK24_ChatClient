@@ -67,6 +67,7 @@ UDPConnection::~UDPConnection()
 
 void UDPConnection::send_msg(std::string msg)
 { 
+
     messageID++;    // increment counter for the next messageID
 
     // try sending msg, max (1 + udpRetry) times
@@ -216,7 +217,7 @@ MessageType UDPConnection::receive_msg()
     // Receive data from the server
     socklen_t addrLenght = sizeof(serverAddress);
     int bytes_read = recvfrom(clientSocket, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&serverAddress, &addrLenght);
-    if (bytes_read <= 0) 
+    if (bytes_read <= 0)
     {
         std::cout << "ERR: nothing received!\n";
         return ERR; // Return early if an error occurred
@@ -254,10 +255,10 @@ void UDPConnection::join_channel(std::string& channelID)
         {
             switch (receive_msg())
             {
-            case ERR: throw ClientException();
-            case NOK: return;
-            case OK:  return;
-            default:  break;
+                case ERR: throw ClientException();
+                case NOK: return;
+                case OK:  return;
+                default:  break;
             }
         }
     }
