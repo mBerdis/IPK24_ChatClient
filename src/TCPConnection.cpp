@@ -172,10 +172,10 @@ void TCPConnection::join_channel(std::string& channelID)
         {
             switch (receive_msg())
             {
-            case ERR: throw ClientException();
-            case NOK: return;
-            case OK:  return;
-            default:  break;
+                case ERR: throw ClientException();
+                case NOK: return;
+                case OK:  return;
+                default:  break;
             }
         }
     }

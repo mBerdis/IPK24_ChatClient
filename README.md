@@ -47,8 +47,65 @@ After each sent UDP message (confirm message excluded) we'll await mandatory con
 To fix this issue we'll give each message a unique identifier. While processing incoming messages we have to check whether we're expecting confirmation message with given unique identifier. If not, discard the message.
 
 ## Implementation
+Program needs to handle both the user input from the `stdin` and incoming messages from the socket. To adress this issue in the non-blocking manner I've utilized function `poll()` (not `epoll()` because of the potential Windows support). Pseudocode that illustrate it's use in `main()`:
+```cpp
+while (!signal_received)    // while not interrupted
+{
+    // wait indefinitely until an event occurs
+    poll(fds, nfds, -1);
+
+    if (user_input) 
+        process_user_input();
+
+    if (socket_input)
+        conPtr->receive_msg();
+}
+```
+
+`poll()` is also used while waiting for ***REPLY*** or ***CONFIRM*** messages from the server. This time we're only checking for input from the socket. This way the user input will stack in the `stdin` and will be processed later in `main()`. Pseudocode that illustrates waiting for ***REPLY*** message:
+```cpp
+while (!signal_received)    // while not interrupted
+{
+    // wait REPLY_TIMEOUT ms until an event occurs
+    poll(fds, 1, REPLY_TIMEOUT);
+
+    if (socket_input)
+    {
+        switch (receive_msg())
+        {
+            case ERR: throw ClientException();
+            case NOK: return;
+            case OK:  return;
+            default:  break;
+        }
+    }
+}
+```
+
 ### 1. Abstraction
-### 2. Terminating connection
+`AbstractConnection` class serves as a base for both the TCP and UDP. It also defines a common interface for sending messages via a child connection that inherits it. 
+
+### 2. Connection lifecycle
+***Connection creation*** consists of invoking constructors in a cascading manner:
+```
+AbstractConnection => UDPConnection
+AbstractConnection => TCPConnection
+```
+
+- `AbstractConnection`'s constructor handles the general initialization needed by both the TCP and UDP. It creates a socket and stores comunnication arguments (server info).
+- `UDPConnection`'s constructor sets UDP retry and timeout arguments.
+- `TCPConnection`'s constructor establishes TCP connection with the server.
+
+***Connection termination*** works in an opposite order than its creation. 
+```
+~UDPConnection => ~AbstractConnection
+~TCPConnection => ~AbstractConnection
+```
+- `UDPConnection`'s and `TCPConnection`'s destructors send their corresponding version of ***BYE*** message to the server.
+- `AbstractConnection`'s destructor closes the socket.
+
+> ***Warning!*** To ensure proper disposal of the connection object by the garbage collector, exceptions need to be caught within the main() function.
+
 
 ## Testing
 
