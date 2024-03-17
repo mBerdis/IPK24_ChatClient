@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
 
+## [0.1.8] - 2023-03-17
+
+### Added 
+- docs: Testing section progress
+
 ## [0.1.7] - 2023-03-16
 
 ### Added 

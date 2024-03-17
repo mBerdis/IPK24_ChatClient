@@ -47,7 +47,7 @@ After each sent UDP message (confirm message excluded) we'll await mandatory con
 To fix this issue we'll give each message a unique identifier. While processing incoming messages we have to check whether we're expecting confirmation message with given unique identifier. If not, discard the message.
 
 ## Implementation
-Program needs to handle both the user input from the `stdin` and incoming messages from the socket. To adress this issue in the non-blocking manner I've utilized function `poll()` (not `epoll()` because of the potential Windows support). Pseudocode that illustrate it's use in `main()`:
+Program needs to handle both the user input from the `stdin` and incoming messages from the socket. To adress this issue in the non-blocking manner `poll()` function is utilized (not `epoll()` because of the potential Windows support). Pseudocode that illustrate it's use in `main()`:
 ```cpp
 while (!signal_received)    // while not interrupted
 {
@@ -62,7 +62,7 @@ while (!signal_received)    // while not interrupted
 }
 ```
 
-`poll()` is also used while waiting for ***REPLY*** or ***CONFIRM*** messages from the server. This time we're only checking for input from the socket. This way the user input will stack in the `stdin` and will be processed later in `main()`. Pseudocode that illustrates waiting for ***REPLY*** message:
+`poll()` is also used while waiting for ***REPLY*** or ***CONFIRM*** messages from the server. This time we're only checking for input from the socket, the user input will stack in the `stdin` and will be processed later in `main()`. Pseudocode that illustrates waiting for ***REPLY*** message:
 ```cpp
 while (!signal_received)    // while not interrupted
 {
@@ -108,6 +108,33 @@ AbstractConnection => TCPConnection
 
 
 ## Testing
+1. Early prototyping
+    - sending single TCP / UDP message to the loopback and inspecting it though the ***Wireshark*** to validate program's ability to send messages.
+2. While programming TCP
+    - I've used *netcat* program to manually mock local ***IPK24-CHAT*** server.
+
+3. While programming UDP
+    - by inspecting outgoing messages send by the client via ***Wireshark***.
+
+4. Full app testing
+    - manually by connecting to the reference server and then checking if messages are visible at the ***Discord server***.
+    ```
+    anon@DESKTOP:/VUT_FIT/IPK/IPK24_Project1$ ./ipk24chat-client -t udp -s anton5.fit.vutbr.cz
+    /auth xberdi01 secret UDP-man
+    Success: Authentication successful.
+    Server: UDP-man joined discord.general.
+    How do I form a connection when we can't even shake hands?
+    /join discord.verified-1
+    Server: UDP-man joined discord.verified-1.
+    Success: Channel discord.verified-1 successfully joined.
+    Does anyone have the Map of the Problematique?
+    ^CConnection terminated successfully!
+    ```
+
+    - by passing short text file to the program: 
+    ```
+    ./ipk24chat-client -t tcp -s anton5.fit.vutbr.cz < input.txt
+    ```
 
 ## Sources
 1. [Assignment specification](https://git.fit.vutbr.cz/NESFIT/IPK-Projects-2024/src/branch/master/Project%201)

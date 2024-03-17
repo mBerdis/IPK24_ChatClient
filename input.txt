@@ -1,4 +1,0 @@
-/auth xberdi01 f3b7650a-e352-4e00-8225-ee1cbf92ce94 Obi-Wan
-Hello there!
-/join discord.verified-1
-Hello there!
