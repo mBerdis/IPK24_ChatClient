@@ -20,7 +20,7 @@
 #endif
 #include <csignal>
 
-#define BUFFER_SIZE   1600	// buffer for reading message from socket
+#define BUFFER_SIZE   1600	// buffer for reading message from socket 1500 + reserve
 #define REPLY_TIMEOUT 5000	// connection will wait 5 sec for reply msg
 extern volatile sig_atomic_t signal_received;
 
@@ -66,6 +66,13 @@ class AbstractConnection
 	protected:
 		virtual void send_msg(std::string msg) = 0;				// pure virtual, internally used for sending messages to server
 		virtual MessageType process_msg(std::string& msg) = 0;	// pure virtual, internally used for processing messages from server
+		
+		/*
+		* Function returns MessageType because of REPLY's OK/NOK message
+		* In case of OK, caller might want to do something
+		* in case of AUTH caller will set state to OPEN
+		*/
+		MessageType await_message(const MessageType waitingFor, uint32_t timeout);
 
 		ConnectionState state;
 		int serverPort;

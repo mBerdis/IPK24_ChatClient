@@ -9,6 +9,11 @@ Legacy windows support code is still in the app and implementing it is possible.
 ## [0.1.9] - 2023-03-18
 
 ### Added 
+- feat: added general await_message function in AbstractConnection that is used by its children
+
+## [0.1.9] - 2023-03-18
+
+### Added 
 - refactor: common printing functions
 - fix: validating user commands
 - docs: testing section update

@@ -160,25 +160,7 @@ void TCPConnection::join_channel(std::string& channelID)
     tcpMsg << "JOIN " << channelID << " AS " << displayName << "\r\n"; // JOIN {ChannelID} AS {DisplayName}\r\n
     send_msg(tcpMsg.str());
 
-    // wait for reply
-    while (!signal_received)
-    {
-        // wait REPLY_TIMEOUT ms until an event occurs
-        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
-            break;
-
-        // Check if there's data to read from the socket
-        if (fds[0].revents & POLLIN)
-        {
-            switch (receive_msg())
-            {
-                case ERR: throw ClientException();
-                case NOK: return;
-                case OK:  return;
-                default:  break;
-            }
-        }
-    }
+    await_message(REPLY, REPLY_TIMEOUT);
 }
 
 void TCPConnection::auth(std::string& username, std::string& secret)
@@ -198,25 +180,8 @@ void TCPConnection::auth(std::string& username, std::string& secret)
     tcpMsg << "AUTH " << username << " AS " << displayName << " USING " << secret << "\r\n";
     send_msg(tcpMsg.str());
 
-    // wait for reply
-    while (!signal_received)
-    {
-        // wait REPLY_TIMEOUT ms until an event occurs
-        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
-            break;
-
-        // Check if there's data to read from the socket
-        if (fds[0].revents & POLLIN)
-        {
-            switch (receive_msg())
-            {
-                case ERR: throw ClientException();
-                case NOK: return;
-                case OK:  set_state(OPEN); return;
-                default:  break;
-            }
-        }
-    }
+    if (await_message(REPLY, REPLY_TIMEOUT) == OK)
+        set_state(OPEN);
 }
 
 void TCPConnection::send_error(std::string msg)

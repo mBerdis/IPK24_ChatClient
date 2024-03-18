@@ -67,7 +67,6 @@ UDPConnection::~UDPConnection()
 
 void UDPConnection::send_msg(std::string msg)
 { 
-
     messageID++;    // increment counter for the next messageID
 
     // try sending msg, max (1 + udpRetry) times
@@ -80,23 +79,8 @@ void UDPConnection::send_msg(std::string msg)
         if (bytesSent < 0)
             throw ClientException("Error sending message!");
 
-        while (!signal_received)
-        {
-            // wait udpTimeout ms until an event occurs
-            if (poll(fds, 1, udpTimeout) <= 0)  // poll was interrupted
-                break;
-
-            // Check if there's data to read from the socket
-            if (fds[0].revents & POLLIN)
-            {
-                switch (receive_msg())
-                {
-                case ERR:     throw ClientException();
-                case CONFIRM: return;
-                default:      break;
-                }
-            }
-        }
+        if (await_message(CONFIRM, udpTimeout) == CONFIRM)
+            return;
     }
 
     throw ClientException("Error sending message! Maximum udpRetry reached.");
@@ -243,25 +227,7 @@ void UDPConnection::join_channel(std::string& channelID)
     udpMsg << JOIN << id_to_str(messageID) << channelID << '\0' << displayName << '\0';
     send_msg(udpMsg.str());
 
-    // wait for reply
-    while (!signal_received)
-    {
-        // wait REPLY_TIMEOUT ms until an event occurs
-        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
-            break;
-
-        // Check if there's data to read from the socket
-        if (fds[0].revents & POLLIN)
-        {
-            switch (receive_msg())
-            {
-                case ERR: throw ClientException();
-                case NOK: return;
-                case OK:  return;
-                default:  break;
-            }
-        }
-    }
+    await_message(REPLY, REPLY_TIMEOUT);
 }
 
 void UDPConnection::auth(std::string& username, std::string& secret)
@@ -279,25 +245,8 @@ void UDPConnection::auth(std::string& username, std::string& secret)
     udpMsg << AUTH << id_to_str(messageID) << username << '\0' << displayName << '\0' << secret << '\0';
     send_msg(udpMsg.str());
 
-    // wait for reply
-    while (!signal_received)
-    {
-        // wait REPLY_TIMEOUT ms until an event occurs
-        if (poll(fds, 1, REPLY_TIMEOUT) <= 0)  // poll was interrupted
-            break;
-
-        // Check if there's data to read from the socket
-        if (fds[0].revents & POLLIN)
-        {
-            switch (receive_msg())
-            {
-            case ERR: throw ClientException();
-            case NOK: return;
-            case OK:  set_state(OPEN); return;
-            default:  break;
-            }
-        }
-    }
+    if (await_message(REPLY, REPLY_TIMEOUT) == OK)
+        set_state(OPEN);
 }
 
 void UDPConnection::send_error(std::string msg)
