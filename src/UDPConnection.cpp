@@ -156,6 +156,13 @@ MessageType UDPConnection::process_msg(std::string& msg)
             std::getline(iss, name,    '\0');  // read until the \0
             std::getline(iss, content, '\0');  // read until the \0
             
+            if (name == "")
+            {
+                send_error("Unexpected message format!");
+                print_err("Unexpected message format!");
+                return ERR;
+            }
+
             print_msg(name, content);
             break;
         }
@@ -165,6 +172,14 @@ MessageType UDPConnection::process_msg(std::string& msg)
             std::string name, content;
             std::getline(iss, name,    '\0');  // read until the \0
             std::getline(iss, content, '\0');  // read until the \0
+
+            if (name == "")
+            {
+                send_error("Unexpected message format!");
+                print_err("Unexpected message format!");
+                return ERR;
+            }
+
             std::cout << "ERR FROM " << name << ": " << content << "\n";
             break;
         }

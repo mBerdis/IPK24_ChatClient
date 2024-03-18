@@ -7,6 +7,7 @@
 #include <csignal>
 #include <netdb.h>
 #include <sstream>
+#include <regex>
 
 #include "ConnectionSettings.h"
 #include "AbstractConnection.h"
@@ -16,6 +17,25 @@
 #include "Exception/ConnectionException.h"
 #include "common.h"
 
+// Regular expressions
+const std::regex GENERAL_REGEX("[A-Za-z0-9-]+");    // Username, ChannelID, Secret; A-z0-9-
+const std::regex PRINTABLE_REGEX("^[[:print:]]*$");  // MessageContent; Printable characters with space (0x20-7E)
+const std::regex WHITESPACE_REGEX("[[:space:]]");    // for DisplayName; Printable characters (0x21-7E)
+
+// max parameter lenghts
+const uint8_t G_MAX_LEN = 20;   // general max lenght; Username, ChannelID, DisplayName
+const uint8_t S_MAX_LEN = 128;  // secret  max lenght; Secret
+const uint16_t M_MAX_LEN = 1400;// message max lenght; MessageContent
+
+static bool match_dName(const std::string displayName)
+{
+    // Check if the input contains whitespace
+    if (std::regex_search(displayName, WHITESPACE_REGEX))
+        return false;
+
+    // Check if the input contains only printable characters
+    return std::regex_match(displayName, PRINTABLE_REGEX);
+}
 
 static std::string parse_ipAddress(std::string str)
 {
@@ -136,7 +156,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         std::string displayName;
         iss >> displayName;
 
-        if (!iss.eof() || displayName == "")
+        if (!iss.eof() || displayName == "" || !match_dName(displayName) || displayName.length() > G_MAX_LEN)
         {
             print_err("Invalid rename command argument!");
             return;
@@ -149,7 +169,7 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         std::string channelID;
         iss >> channelID;
 
-        if (!iss.eof() || channelID == "")
+        if (!iss.eof() || channelID == "" || !std::regex_match(channelID, GENERAL_REGEX) || channelID.length() > G_MAX_LEN)
         {
             print_err("Invalid join command argument!");
             return;
@@ -163,8 +183,12 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         iss >> username;
         iss >> secret;
         iss >> displayName;
-
-        if (!iss.eof() || username == "" || secret == "" || displayName == "")
+        
+        // checking all parameter specifications
+        if (!iss.eof() || username == "" || secret == "" || displayName == "" ||
+            !std::regex_match(username, GENERAL_REGEX) || username.length() > G_MAX_LEN ||
+            !std::regex_match(secret,   GENERAL_REGEX) || secret.length()   > S_MAX_LEN ||
+            !match_dName(displayName) || displayName.length() > G_MAX_LEN)
         {
             print_err("Invalid auth command arguments!");
             return;
@@ -175,13 +199,27 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
     }
     else 
     {
+        // check if it was supposted to be a command
         if (firstWord[0] == '/')
         {
             print_err("Invalid command detected!");
             return;
         }
 
-        // its not a command, send msg
+        // else it is a message
+
+        if (!std::regex_match(line, PRINTABLE_REGEX))
+        {
+            print_err("Invalid message content!");
+            return;
+        }
+
+        if (line.length() > M_MAX_LEN)
+        {
+            // #TODO: split it I guess
+        }
+
+        // message is valid, send it
         conPtr->msg(line);
     }
 }
