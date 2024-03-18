@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "ConnectionSettings.h"
+#include "common.h"
 
 #ifdef _WIN32
 #include <winsock2.h>

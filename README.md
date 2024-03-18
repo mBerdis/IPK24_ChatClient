@@ -130,6 +130,9 @@ AbstractConnection => TCPConnection
     Does anyone have the Map of the Problematique?
     ^CConnection terminated successfully!
     ```
+    Messages visible on the Discord server:
+    ![FirstDiscordScreen](images/FirstDiscordScreen.png)
+    ![SecondDiscordScreen](images/SecondDiscordScreen.png)
 
     - by passing short text file to the program: 
     ```

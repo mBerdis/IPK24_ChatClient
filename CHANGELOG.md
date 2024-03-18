@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
 
+## [0.1.9] - 2023-03-18
+
+### Added 
+- refactor: common printing functions
+- fix: validating user commands
+- docs: testing section update
+
 ## [0.1.8] - 2023-03-17
 
 ### Added 

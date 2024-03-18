@@ -160,8 +160,8 @@ MessageType UDPConnection::process_msg(std::string& msg)
             }
             else 
             {
-                send_error("Unexpected result value.");
-                std::cerr << "ERR: Unexpected result value.\n";
+                send_error("Unexpected result value!");
+                print_err("Unexpected result value!");
                 return ERR;
             }
         }
@@ -171,7 +171,8 @@ MessageType UDPConnection::process_msg(std::string& msg)
             std::string name, content;
             std::getline(iss, name,    '\0');  // read until the \0
             std::getline(iss, content, '\0');  // read until the \0
-            std::cout << name << ": " << content << "\n";
+            
+            print_msg(name, content);
             break;
         }
 
@@ -189,7 +190,7 @@ MessageType UDPConnection::process_msg(std::string& msg)
 
         default:
             send_error("Unrecognized message from server.");
-            std::cerr << "ERR: Unrecognized message from server.\n";
+            print_err("Unrecognized message from server!");
             return ERR;
     }
 
@@ -200,8 +201,7 @@ void UDPConnection::msg(std::string msg)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
-        std::cerr << "Current state: " << state << "\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 
@@ -219,7 +219,7 @@ MessageType UDPConnection::receive_msg()
     int bytes_read = recvfrom(clientSocket, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&serverAddress, &addrLenght);
     if (bytes_read <= 0)
     {
-        std::cout << "ERR: nothing received!\n";
+        print_err("Nothing received!");
         return ERR; // Return early if an error occurred
     }
 
@@ -234,7 +234,7 @@ void UDPConnection::join_channel(std::string& channelID)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 
@@ -268,7 +268,7 @@ void UDPConnection::auth(std::string& username, std::string& secret)
 {
     if (state == OPEN)
     {
-        std::cerr << "ERR: You are already authorized!\n" << std::flush;
+        print_err("You are already authorized!");
         return;
     }
 
@@ -304,7 +304,7 @@ void UDPConnection::send_error(std::string msg)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 

@@ -25,7 +25,7 @@ void TCPConnection::msg(std::string msg)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 
@@ -37,9 +37,9 @@ void TCPConnection::msg(std::string msg)
 void TCPConnection::send_msg(std::string msg)
 {
     int bytesSent = send(clientSocket, msg.c_str(), msg.length(), 0);
-    if (bytesSent < 0) {
-        std::cerr << "ERR: Error sending message\n";
-    }
+    if (bytesSent < 0) 
+        print_err("Error sending message!");
+
     return;
 }
 
@@ -59,7 +59,7 @@ MessageType TCPConnection::process_msg(std::string& msg)
         if (keyword != "IS")
         {
             send_error("Unrecognized message from server.");
-            std::cerr << "ERR: Unrecognized message from server.\n";
+            print_err("Unrecognized message from server!");
             return ERR;
         }
 
@@ -76,26 +76,26 @@ MessageType TCPConnection::process_msg(std::string& msg)
         else 
         {
             send_error("Unrecognized REPLY message from the server.");
-            std::cerr << "ERR: Unrecognized REPLY message from the server.\n";
+            print_err("Unrecognized REPLY message from the server!");
             return ERR;
         }
     }
     else if (firstWord == "MSG")
     {
-        std::string keyword, displayName, keyword2, message;
+        std::string keyword, name, keyword2, content;
         iss >> keyword;         // FROM
-        iss >> displayName;     // name
+        iss >> name;            // name
         iss >> keyword2;        // IS
-        std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
+        std::getline(iss >> std::ws, content); // read the rest of the line, skipping leading whitespace
 
         if (keyword != "FROM" && keyword2 != "IS")
         {
             send_error("Unrecognized message from server.");
-            std::cerr << "ERR: Unrecognized message from server.\n";
+            print_err("Unrecognized message from server!");
             return ERR;
         }
 
-        std::cout << displayName << ": " << message << "\n";
+        print_msg(name, content);
         return MSG;
     }
     else if (firstWord == "ERR")
@@ -109,7 +109,7 @@ MessageType TCPConnection::process_msg(std::string& msg)
         if (keyword != "FROM" || keyword2 != "IS")
         {
             send_error("Unrecognized message from server.");
-            std::cerr << "ERR: Unrecognized message from server.\n";
+            print_err("Unrecognized message from server!");
             return ERR;
         }
 
@@ -124,7 +124,7 @@ MessageType TCPConnection::process_msg(std::string& msg)
     else
     {
         send_error("Unrecognized message from server.");
-        std::cerr << "ERR: Unrecognized message from server.\n";
+        print_err("Unrecognized message from server!");
         return ERR;
     }
 }
@@ -136,7 +136,7 @@ MessageType TCPConnection::receive_msg()
     // Receive data from the server
     int bytes_read = recv(clientSocket, buffer, BUFFER_SIZE, 0);
     if (bytes_read <= 0) {
-        std::cout << "ERR: nothing received!\n";
+        print_err("Nothing received!");
         return ERR; // Return early if an error occurred
     }
 
@@ -151,7 +151,7 @@ void TCPConnection::join_channel(std::string& channelID)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 
@@ -185,7 +185,7 @@ void TCPConnection::auth(std::string& username, std::string& secret)
 {
     if (state == OPEN)
     {
-        std::cerr << "ERR: You are already authorized!\n" << std::flush;
+        print_err("You are already authorized!");
         return;
     }
 
@@ -223,7 +223,7 @@ void TCPConnection::send_error(std::string msg)
 {
     if (state != OPEN)
     {
-        std::cerr << "ERR: Auth first!\n" << std::flush;
+        print_err("Auth first!");
         return;
     }
 

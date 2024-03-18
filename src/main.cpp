@@ -14,6 +14,7 @@
 #include "TCPConnection.h"
 #include "Exception/ClientException.h"
 #include "Exception/ConnectionException.h"
+#include "common.h"
 
 
 static std::string parse_ipAddress(std::string str)
@@ -45,6 +46,10 @@ static std::string parse_ipAddress(std::string str)
 
 static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettings& settings)
 {
+    // "Edge cases of argument processing will not be a part of evaluation 
+    // (e.g., providing argument more than once, providing invalid argument value, providing unknown arguments). 
+    // Application behaviour is expected to be undefined in such cases." - from asssignment
+
     int opt;        // Parse command-line options using getopt
 
     while ((opt = getopt(argc, argv, "t:s:p:d:r:h")) != -1) {
@@ -118,11 +123,11 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
     else if (firstWord == "/rename")
     {
         std::string displayName;
-        std::getline(iss >> std::ws, displayName); // read the rest of the line, skipping leading whitespace
+        iss >> displayName;
 
-        if (displayName == "")
+        if (!iss.eof() || displayName == "")
         {
-            std::cerr << "ERR: Invalid rename command argument!" << "\n";
+            print_err("Invalid rename command argument!");
             return;
         }
 
@@ -133,9 +138,9 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         std::string channelID;
         iss >> channelID;
 
-        if (channelID == "")
+        if (!iss.eof() || channelID == "")
         {
-            std::cerr << "ERR: Invalid join command argument!" << "\n";
+            print_err("Invalid join command argument!");
             return;
         }
 
@@ -146,12 +151,11 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
         std::string username, secret, displayName;
         iss >> username;
         iss >> secret;
+        iss >> displayName;
 
-        std::getline(iss >> std::ws, displayName); // read the rest of the line, skipping leading whitespace
-
-        if (username == "" || secret == "" || displayName == "")
+        if (!iss.eof() || username == "" || secret == "" || displayName == "")
         {
-            std::cerr << "ERR: Invalid auth command arguments!" << "\n";
+            print_err("Invalid auth command arguments!");
             return;
         }
 
@@ -160,15 +164,13 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
     }
     else 
     {
-        
         if (firstWord[0] == '/')
         {
-            std::cerr << "ERR: Invalid command detected!";
+            print_err("Invalid command detected!");
             return;
         }
 
         // its not a command, send msg
-        
         conPtr->msg(line);
     }
 }
