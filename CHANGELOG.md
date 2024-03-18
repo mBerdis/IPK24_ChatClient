@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
 
+## [0.2.0] - 2023-03-18
+
+### Fixed 
+- tcp: comparing in case-insensitive manner keywords
+- tcp: checking if received message is correct
+
 ## [0.1.9] - 2023-03-18
 
 ### Added 

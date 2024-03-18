@@ -48,27 +48,27 @@ MessageType TCPConnection::process_msg(std::string& msg)
     std::istringstream iss(msg);
     std::string firstWord;
     iss >> firstWord;       // will read until first whitespace
-
-    if (firstWord == "REPLY")
+    
+    if (eq_kw(firstWord, "REPLY"))
     {
         std::string confirmation, keyword, reason;
         iss >> confirmation;    // OK or NOK
         iss >> keyword;         // IS
         std::getline(iss >> std::ws, reason); // read the rest of the line, skipping leading whitespace
-
-        if (keyword != "IS")
+        
+        if (!eq_kw(keyword, "IS"))
         {
             send_error("Unrecognized message from server.");
             print_err("Unrecognized message from server!");
             return ERR;
         }
-
-        if (confirmation == "OK")
+        
+        if (eq_kw(confirmation, "OK"))
         {
             std::cerr << "Success: " << reason << "\n";
             return OK;
         }
-        else if (confirmation == "NOK")
+        else if (eq_kw(confirmation, "NOK"))
         {
             std::cerr << "Failure: " << reason << "\n";
             return NOK;
@@ -80,15 +80,15 @@ MessageType TCPConnection::process_msg(std::string& msg)
             return ERR;
         }
     }
-    else if (firstWord == "MSG")
+    else if (eq_kw(firstWord, "MSG"))
     {
         std::string keyword, name, keyword2, content;
         iss >> keyword;         // FROM
         iss >> name;            // name
         iss >> keyword2;        // IS
         std::getline(iss >> std::ws, content); // read the rest of the line, skipping leading whitespace
-
-        if (keyword != "FROM" && keyword2 != "IS")
+        
+        if (!eq_kw(keyword, "FROM") || !eq_kw(keyword2, "IS") || name == "")
         {
             send_error("Unrecognized message from server.");
             print_err("Unrecognized message from server!");
@@ -98,25 +98,25 @@ MessageType TCPConnection::process_msg(std::string& msg)
         print_msg(name, content);
         return MSG;
     }
-    else if (firstWord == "ERR")
+    else if (eq_kw(firstWord, "ERR"))
     {
-        std::string keyword, displayName, keyword2, message;
+        std::string keyword, name, keyword2, message;
         iss >> keyword;         // FROM
-        iss >> displayName;     // name
+        iss >> name;            // name
         iss >> keyword2;        // IS
         std::getline(iss >> std::ws, message); // read the rest of the line, skipping leading whitespace
 
-        if (keyword != "FROM" || keyword2 != "IS")
+        if (!eq_kw(keyword, "FROM") || !eq_kw(keyword2, "IS") || name == "")
         {
             send_error("Unrecognized message from server.");
             print_err("Unrecognized message from server!");
             return ERR;
         }
 
-        std::cout << "ERR FROM " << displayName << ": " << message << "\n";
+        std::cout << "ERR FROM " << name << ": " << message << "\n";
         return ERR;
     }
-    else if (firstWord == "BYE")
+    else if (eq_kw(firstWord, "BYE"))
     {
         set_state(INIT); // changing to INIT state, because in this state destructor doesnt send BYE
         return BYE;

@@ -29,9 +29,10 @@ static std::string parse_ipAddress(std::string str)
 
     // Call getaddrinfo to get address info for the hostname
     int result = getaddrinfo(str.c_str(), nullptr, &hints, &res);
-    if (result != 0) {
-        std::cerr << "getaddrinfo failed: " << gai_strerror(result) << std::endl;
-        return "";
+    if (result != 0) 
+    {
+        print_err("getaddrinfo failed!");
+        exit(EXIT_FAILURE);
     }
 
     char address[INET_ADDRSTRLEN];
@@ -60,7 +61,10 @@ static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettin
             else if (std::strcmp(optarg, "udp") == 0)
                 settings.protType = ProtocolType::UDP;
             else
-                throw std::invalid_argument("Invalid argument for -t. Use 'tcp' or 'udp'.");
+            {
+                print_err("Invalid argument for -t. Use 'tcp' or 'udp'.");
+                exit(EXIT_FAILURE);
+            }
             break;
         case 's':
             settings.serverAdress = parse_ipAddress(optarg);
@@ -85,15 +89,22 @@ static int parse_args_to_setting(int argc, char* argv[], struct ConnectionSettin
 
         default:
             std::cerr << "Usage: " << argv[0] << " -t protocol -s servAdd [-p servPort] [-d udpTimeout] [-r udpRetry] [-h]" << std::endl;
-            throw std::invalid_argument("Invalid option!");
+            print_err("Invalid option!");
+            exit(EXIT_FAILURE);
         }
     }
 
     if (settings.serverAdress.empty())
-        throw std::invalid_argument("Invalid argument for -s. Provide server address.");
+    {
+        print_err("Invalid argument for -s. Provide server address.");
+        exit(EXIT_FAILURE);
+    }
 
-    if (settings.protType == ProtocolType::UNDEFINED)
-        throw std::invalid_argument("Argument -t undefined! Use 'tcp' or 'udp'.");
+    if (settings.protType == ProtocolType::UNDEFINED) 
+    {
+        print_err("Argument -t undefined! Use 'tcp' or 'udp'.");
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
 }

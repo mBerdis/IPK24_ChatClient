@@ -128,7 +128,7 @@ AbstractConnection => TCPConnection
     Server: UDP-man joined discord.verified-1.
     Success: Channel discord.verified-1 successfully joined.
     Does anyone have the Map of the Problematique?
-    ^CConnection terminated successfully!
+    ^C
     ```
     Messages visible on the Discord server:
     ![FirstDiscordScreen](images/FirstDiscordScreen.png)

@@ -16,7 +16,7 @@ AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSet
 {
 #ifdef _WIN32
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		std::cerr << "WSAStartup failed\n";
+		print_err("WSAStartup failed!");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -24,7 +24,7 @@ AbstractConnection::AbstractConnection(int family, int socketType, ConnectionSet
 	clientSocket = socket(family, socketType, 0);
 	if (clientSocket <= 0)
 	{
-		std::cerr << "ERROR: socket\n";
+		print_err("Socket failed!");
 		exit(EXIT_FAILURE);
 	}
 
