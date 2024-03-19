@@ -19,17 +19,18 @@
 
 // Regular expressions
 
-// #TODO remove when done testing (added . to join discord channels)
-const std::regex GENERAL_REGEX("[A-Za-z0-9-.]+");     // Username, ChannelID, Secret; A-z0-9-
+// IN TESTING UNCOMMENT 
+// const std::regex GENERAL_REGEX("[A-Za-z0-9-.]+");     // Username, ChannelID, Secret; A-z0-9-. (added . to join discord channels)
 
-//const std::regex GENERAL_REGEX("[A-Za-z0-9-]+");     // Username, ChannelID, Secret; A-z0-9-
+// IN PRODUCTION UNCOMMENT
+const std::regex GENERAL_REGEX("[A-Za-z0-9-]+");     // Username, ChannelID, Secret; A-z0-9-
 const std::regex PRINTABLE_REGEX("^[[:print:]]*$");  // MessageContent; Printable characters with space (0x20-7E)
 const std::regex WHITESPACE_REGEX("[[:space:]]");    // for DisplayName; Printable characters (0x21-7E)
 
 // max parameter lenghts
-const uint8_t G_MAX_LEN = 20;   // general max lenght; Username, ChannelID, DisplayName
-const uint8_t S_MAX_LEN = 128;  // secret  max lenght; Secret
-const uint16_t M_MAX_LEN = 1400;// message max lenght; MessageContent
+constexpr uint8_t  G_MAX_LEN = 20;   // general max lenght; Username, ChannelID, DisplayName
+constexpr uint8_t  S_MAX_LEN = 128;  // secret  max lenght; Secret
+constexpr uint16_t M_MAX_LEN = 1400; // message max lenght; MessageContent
 
 static bool match_dName(const std::string displayName)
 {
@@ -233,7 +234,7 @@ int main(int argc, char* argv[])
 
     ConnectionSettings settings;
     if (parse_args_to_setting(argc, argv, settings) != 0)
-        return 0;   // help option detected, exit
+        return SUCCESS;   // help option detected, exit
 
     // Create connection
     std::unique_ptr<AbstractConnection> conPtr;
@@ -246,7 +247,7 @@ int main(int argc, char* argv[])
     }
     catch (ConnectionException&)
     {
-        return 404; // TODO: return code
+        return ERR_CONNECTION;
     }
 
     // Set up pollfd array
@@ -276,7 +277,7 @@ int main(int argc, char* argv[])
 
             // check if reached EOF and read nothing
             if (std::cin.eof() && line.empty())
-                return 0;   // EOF reached. Exiting
+                return SUCCESS;   // EOF reached. Exiting
 
             try
             {
@@ -284,7 +285,7 @@ int main(int argc, char* argv[])
             }
             catch (const ClientException&)
             {
-                return 50;      // TODO: return code
+                return ERR_SERVER;
             }
 
             continue;
@@ -295,13 +296,13 @@ int main(int argc, char* argv[])
         {
             switch (conPtr->receive_msg())
             {
-                case ERR: return 50;    // TODO: return code
-                case BYE: return 0;
+                case ERR: return ERR_SERVER;
+                case BYE: return SUCCESS;
                 default: break;
             }        
         }   
     }
 
     // connection termination is handled by destructors
-    return 0;
+    return SUCCESS;
 }

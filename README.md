@@ -53,8 +53,16 @@ The program reads user-typed commands from the standard input (`stdin`). Any oth
 | ---     | --------  | ----------- |
 |`/auth`  | `{username}` `{secret}` `{displayName}` | Tries to authorize user with the server |
 |`/join`  | `{channelID}` | Tries to join channel |
-|`/rename`  | `{displayName}` | Renames authorized user, will apply to newly sent messages |
+|`/rename`| `{displayName}` | Renames authorized user, will apply to newly sent messages |
 |`/help`  | | Prints help about these commands  |
+
+Program exit codes:
+|Exit code | Description |
+| ---      | ----------- |
+|`0`       | Success |
+|`1`       | Error while processing arguments or creating socket |
+|`40`      | Error while communicating with the server |
+|`50`      | Error while trying to create connection  |
 
 ## Problematique
 The `IPK24-chat` is built on top of well known transport protocols TCP [RFC9293] or UDP [RFC768]. Since TCP provides reliable delivery, its variant posses little to none challenge. Thus in this section we'll focus on making UDP's connection-less approach more reliable.
