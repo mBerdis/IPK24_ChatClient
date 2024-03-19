@@ -18,7 +18,11 @@
 #include "common.h"
 
 // Regular expressions
-const std::regex GENERAL_REGEX("[A-Za-z0-9-]+");    // Username, ChannelID, Secret; A-z0-9-
+
+// #TODO remove when done testing (added . to join discord channels)
+const std::regex GENERAL_REGEX("[A-Za-z0-9-.]+");     // Username, ChannelID, Secret; A-z0-9-
+
+//const std::regex GENERAL_REGEX("[A-Za-z0-9-]+");     // Username, ChannelID, Secret; A-z0-9-
 const std::regex PRINTABLE_REGEX("^[[:print:]]*$");  // MessageContent; Printable characters with space (0x20-7E)
 const std::regex WHITESPACE_REGEX("[[:space:]]");    // for DisplayName; Printable characters (0x21-7E)
 
@@ -214,13 +218,11 @@ void process_user_input(const std::string& line, std::unique_ptr<AbstractConnect
             return;
         }
 
-        if (line.length() > M_MAX_LEN)
+        // split line into messages of max M_MAX_LEN lenght and send them 
+        for (size_t i = 0; i <= line.length(); i += M_MAX_LEN)
         {
-            // #TODO: split it I guess
+            conPtr->msg(line.substr(i, M_MAX_LEN));
         }
-
-        // message is valid, send it
-        conPtr->msg(line);
     }
 }
 

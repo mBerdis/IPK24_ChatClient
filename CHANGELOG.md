@@ -9,6 +9,11 @@ Legacy windows support code is still in the app and implementing it is possible.
 ## [0.2.1] - 2023-03-19
 
 ### Fixed 
+- spliting too long message input into correct sized messages and sending them in order
+
+## [0.2.1] - 2023-03-19
+
+### Fixed 
 - validating user input format
 
 ## [0.2.0] - 2023-03-18
