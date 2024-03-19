@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
 
-## [0.2.1] - 2023-03-19
+## [0.2.3] - 2023-03-19
+
+### Added 
+- docs: images to testing section
+
+## [0.2.2] - 2023-03-19
 
 ### Fixed 
 - spliting too long message input into correct sized messages and sending them in order

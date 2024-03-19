@@ -110,11 +110,40 @@ AbstractConnection => TCPConnection
 ## Testing
 1. Early prototyping
     - sending single TCP / UDP message to the loopback and inspecting it though the ***Wireshark*** to validate program's ability to send messages.
+    ![SendingMessagesViaUDP](images/SendingMessagesViaUDP.png)
+    > ***Warning!*** In order for ***Windows*** to capture packets sent by a client app run on ***Ubuntu WSL***, client needs to communicate on ***vEthernet (WSL (Hyper-V firewall)) address*** instead of a traditional `127.0.0.1` loopback.
+
 2. While programming TCP
     - I've used *netcat* program to manually mock local ***IPK24-CHAT*** server.
+    Client:
+    ```
+    anon@DESKTOP:/VUT_FIT/IPK/IPK24_Project1$ ./ipk24chat-client -t tcp -s 127.0.0.1
+    Message without auth...
+    ERR: Auth first!
+    /auth test will fail
+    Failure: Auth failed. Try again.
+    /auth xberdi01 secret TCP-tester
+    Success: Auth success.
+    Hey! It worked.
+    ^C
+    ```
+    Mocked server: \
+    (Client messages are prefixed messages with '<' for better readability)
+    ```
+    anon@DESKTOP:/VUT_FIT/IPK/IPK24_Project1$ nc -4 -l -v 127.0.0.1 4567
+    Listening on localhost 4567
+    Connection received on localhost 49430
+    < AUTH test AS fail USING will
+    REPLY NOK IS Auth failed. Try again.
+    < AUTH xberdi01 AS TCP-tester USING secret
+    REPLY OK IS Auth success.
+    < MSG FROM TCP-tester IS Hey! It worked.
+    < BYE
+    ```
 
 3. While programming UDP
-    - by inspecting outgoing messages send by the client via ***Wireshark***.
+    - by inspecting outgoing messages send by the client via ***Wireshark***. Screenshot from full communication between the reference server and app:
+    ![CommunicatingWithRefServerUDP](images/CommunicatingWithRefServerUDP.png)
 
 4. Full app testing
     - manually by connecting to the reference server and then checking if messages are visible at the ***Discord server***.
@@ -130,7 +159,7 @@ AbstractConnection => TCPConnection
     Does anyone have the Map of the Problematique?
     ^C
     ```
-    Messages visible on the Discord server:
+    Messages visible on the Discord server:\
     ![FirstDiscordScreen](images/FirstDiscordScreen.png)
     ![SecondDiscordScreen](images/SecondDiscordScreen.png)
 
