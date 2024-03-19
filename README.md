@@ -6,6 +6,24 @@ License: GNU GENERAL PUBLIC LICENSE Version 3 \
 
 Chat client application written in ***C++***, using object oriented approach, that uses ***IPK24-CHAT*** protocol over ***IPv4*** to communicate with the server.
 
+## Table of Contents
+
+- [IPK24_ChatClient](#ipk24_chatclient)
+    - [Table of Contents](#table-of-contents)
+    - [Build & Run](#build--run)
+    - [Problematique](#problematique)
+        - [1. Packet loss](#1-packet-loss)
+        - [2. Packet delay / duplication](#2-packet-delay--duplication)
+    - [Implementation](#implementation)
+        - [1. Abstraction](#abstraction)
+        - [2. Connection lifecycle](#2-connection-lifecycle)
+    - [Testing](#testing)
+        - [1. Early prototyping](#1-early-prototyping)
+        - [2. While programming TCP](#2-while-programming-tcp)
+        - [3. While programming UDP](#3-while-programming-udp)
+        - [4. Full app testing](#4-full-app-testing)
+    - [Sources](#sources)
+
 ## Build & Run
 Project uses ***Makefile*** to handle build. Available commands:
 |Command             |Description           |
@@ -108,14 +126,16 @@ AbstractConnection => TCPConnection
 
 
 ## Testing
-1. Early prototyping
-    - sending single TCP / UDP message to the loopback and inspecting it though the ***Wireshark*** to validate program's ability to send messages.
-    ![SendingMessagesViaUDP](images/SendingMessagesViaUDP.png)
-    > ***Warning!*** In order for ***Windows*** to capture packets sent by a client app run on ***Ubuntu WSL***, client needs to communicate on ***vEthernet (WSL (Hyper-V firewall)) address*** instead of a traditional `127.0.0.1` loopback.
+### 1. Early prototyping
+- sending single TCP / UDP message to the loopback and inspecting it though the ***Wireshark*** to validate program's ability to send messages.
+![SendingMessagesViaUDP](images/SendingMessagesViaUDP.png)
 
-2. While programming TCP
-    - I've used *netcat* program to manually mock local ***IPK24-CHAT*** server.
-    Client:
+> ***Warning!*** In order for ***Windows*** to capture packets sent by a client app run on ***Ubuntu WSL***, client needs to communicate on ***vEthernet (WSL (Hyper-V firewall)) address*** instead of a traditional `127.0.0.1` loopback.
+
+### 2. While programming TCP
+- Using *netcat* program to manually mock local ***IPK24-CHAT*** server.
+Client:
+
     ```
     anon@DESKTOP:/VUT_FIT/IPK/IPK24_Project1$ ./ipk24chat-client -t tcp -s 127.0.0.1
     Message without auth...
@@ -127,6 +147,7 @@ AbstractConnection => TCPConnection
     Hey! It worked.
     ^C
     ```
+
     Mocked server: \
     (Client messages are prefixed messages with '<' for better readability)
     ```
@@ -141,12 +162,12 @@ AbstractConnection => TCPConnection
     < BYE
     ```
 
-3. While programming UDP
-    - by inspecting outgoing messages send by the client via ***Wireshark***. Screenshot from full communication between the reference server and app:
-    ![CommunicatingWithRefServerUDP](images/CommunicatingWithRefServerUDP.png)
+### 3. While programming UDP
+- by inspecting outgoing messages send by the client via ***Wireshark***. Screenshot from full communication between the reference server and app:
+![CommunicatingWithRefServerUDP](images/CommunicatingWithRefServerUDP.png)
 
-4. Full app testing
-    - manually by connecting to the reference server and then checking if messages are visible at the ***Discord server***.
+### 4. Full app testing
+- manually by connecting to the reference server and then checking if messages are visible at the ***Discord server***.
     ```
     anon@DESKTOP:/VUT_FIT/IPK/IPK24_Project1$ ./ipk24chat-client -t udp -s anton5.fit.vutbr.cz
     /auth xberdi01 secret UDP-man
@@ -163,7 +184,7 @@ AbstractConnection => TCPConnection
     ![FirstDiscordScreen](images/FirstDiscordScreen.png)
     ![SecondDiscordScreen](images/SecondDiscordScreen.png)
 
-    - by passing short text file to the program: 
+- by passing short text file to the program: 
     ```
     ./ipk24chat-client -t tcp -s anton5.fit.vutbr.cz < input.txt
     ```
