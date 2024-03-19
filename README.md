@@ -15,7 +15,7 @@ Chat client application written in ***C++***, using object oriented approach, th
         - [1. Packet loss](#1-packet-loss)
         - [2. Packet delay / duplication](#2-packet-delay--duplication)
     - [Implementation](#implementation)
-        - [1. Abstraction](#abstraction)
+        - [1. Abstraction](#1-abstraction)
         - [2. Connection lifecycle](#2-connection-lifecycle)
     - [Testing](#testing)
         - [1. Early prototyping](#1-early-prototyping)
@@ -102,6 +102,7 @@ while (!signal_received)    // while not interrupted
 
 ### 1. Abstraction
 `AbstractConnection` class serves as a base for both the TCP and UDP. It also defines a common interface for sending messages via a child connection that inherits it. 
+- Method `await_message(MessageType waitingFor)` serves as a common way of TCP and UDP connection to wait for ***REPLY*** or ***CONFIRM*** (only UDP) messages. But at the same time, other messages are correctly processed and user input is being queued at the standard input (`stdin`) so no user input is ignored. This method calls ***pure virtual methods***, whose functionality is defined by the child that invokes the method.
 
 ### 2. Connection lifecycle
 ***Connection creation*** consists of invoking constructors in a cascading manner:
@@ -122,15 +123,17 @@ AbstractConnection => TCPConnection
 - `UDPConnection`'s and `TCPConnection`'s destructors send their corresponding version of ***BYE*** message to the server.
 - `AbstractConnection`'s destructor closes the socket.
 
-> ***Warning!*** To ensure proper disposal of the connection object by the garbage collector, exceptions need to be caught within the main() function.
+> <span style="color:orange">***Warning!*** To ensure proper disposal of the connection object by the garbage collector, exceptions need to be caught within the main() function.</span>
 
 
 ## Testing
+Methods of testing varied during each phase of development:
+
 ### 1. Early prototyping
 - sending single TCP / UDP message to the loopback and inspecting it though the ***Wireshark*** to validate program's ability to send messages.
 ![SendingMessagesViaUDP](images/SendingMessagesViaUDP.png)
 
-> ***Warning!*** In order for ***Windows*** to capture packets sent by a client app run on ***Ubuntu WSL***, client needs to communicate on ***vEthernet (WSL (Hyper-V firewall)) address*** instead of a traditional `127.0.0.1` loopback.
+    > <span style="color:orange">***Warning!*** In order for ***Windows*** to capture packets sent by a client app run on ***Ubuntu WSL***, client needs to communicate on ***vEthernet (WSL (Hyper-V firewall)) address*** instead of a traditional `127.0.0.1` loopback.</span>
 
 ### 2. While programming TCP
 - Using *netcat* program to manually mock local ***IPK24-CHAT*** server.

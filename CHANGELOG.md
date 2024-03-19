@@ -3,8 +3,22 @@
 All features and notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-WINDOWS support was deprecated in version [0.0.3] due to amount of testing it would require and uncompatible libraries. 
+### Implemented features:
+- full UDP and TCP communication with the server
+- CLI arguments parsing
+- user input checking and parsing into messages
+- everything specified in the [assignment](https://git.fit.vutbr.cz/NESFIT/IPK-Projects-2024/src/branch/master/Project%201)
+
+### Unimplemented features:
+- WINDOWS support was deprecated in version [0.0.3](#003---2023-02-29) due to amount of testing it would require and uncompatible libraries. 
 Legacy windows support code is still in the app and implementing it is possible.
+- Certain parts of code could be refactored.
+
+## [0.2.5] - 2023-03-19
+
+### Added 
+- docs: noted features in changelog
+- docs: await_message() in Abstraction
 
 ## [0.2.4] - 2023-03-19
 
