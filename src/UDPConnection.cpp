@@ -11,10 +11,10 @@ static std::string id_to_str(uint16_t id)
 {
     std::stringstream str;
     uint16_t networkMessageID = htons(id);   // convert it to network byte order
-    unsigned char byte1 = (networkMessageID >> 8) & 0xFF;   // get first byte
-    unsigned char byte2 = networkMessageID & 0xFF;          // get second byte
+    char msb = networkMessageID & 0xFF;
+    char lsb = networkMessageID >> 8;
 
-    str << byte1 << byte2;
+    str << msb << lsb;
     return str.str();
 }
 
@@ -23,7 +23,7 @@ static uint16_t read_msgID(std::istringstream& iss)
     char buffer[2];
     iss.read(buffer, sizeof(buffer));
     // interpret the buffer as a uint16_t
-    uint16_t networkMessageID = (static_cast<uint16_t>(buffer[0]) << 8) | static_cast<uint16_t>(buffer[1]);
+    uint16_t networkMessageID = static_cast<uint16_t>(buffer[0]) | (static_cast<uint16_t>(buffer[1]) << 8);
 
     return ntohs(networkMessageID);
 }
@@ -106,7 +106,7 @@ MessageType UDPConnection::process_msg(std::string& msg)
 
     MessageType receivedType = read_msgType(iss);
     uint16_t    receivedID   = read_msgID(iss);
-
+    
     if (receivedType != CONFIRM)
         send_confirm(receivedID);
     
