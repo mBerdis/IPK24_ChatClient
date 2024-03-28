@@ -113,7 +113,7 @@ MessageType TCPConnection::process_msg(std::string& msg)
             return ERR;
         }
 
-        std::cout << "ERR FROM " << name << ": " << message << "\n";
+        std::cerr << "ERR FROM " << name << ": " << message << "\n";
         return ERR;
     }
     else if (eq_kw(firstWord, "BYE"))

@@ -14,7 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Legacy windows support code is still in the app and implementing it is possible.
 - Certain parts of code could be refactored.
 
-## [0.2.6] - 2023-03-21
+## [0.2.8] - 2023-03-28
+
+### Fixed 
+- printing "ERR FROM " messages to stderr
+
+## [0.2.7] - 2023-03-21
 
 ### Fixed 
 - sending messageID in network byte order

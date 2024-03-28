@@ -180,7 +180,7 @@ MessageType UDPConnection::process_msg(std::string& msg)
                 return ERR;
             }
 
-            std::cout << "ERR FROM " << name << ": " << content << "\n";
+            std::cerr << "ERR FROM " << name << ": " << content << "\n";
             break;
         }
 
